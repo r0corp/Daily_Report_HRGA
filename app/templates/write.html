@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Tulis Report{% endblock %}
+{% block heading %}Tulis Report{% endblock %}
+{% block heading_icon %}bi-pencil-square{% endblock %}
+{% block heading_subtitle %}&nbsp;{% endblock %}
+{% block header_actions %}
+<button class="btn btn-primary btn-sm" id="btnSendTop"><i class="bi bi-send me-1"></i>Kirim ke Spv</button>
+{% endblock %}
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small mb-1" for="fDate">Tanggal</label>
+                <input type="date" id="fDate" class="form-control form-control-sm" data-no-picker>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small mb-1" for="fStatus">Status hari</label>
+                <select id="fStatus" class="form-select form-select-sm">
+                    {% for s in day_statuses %}<option value="{{ s }}">{{ s or 'Masuk' }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-8 d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-secondary" id="btnPrev"><i class="bi bi-chevron-left me-1"></i>Hari kerja sebelumnya</button>
+                <button class="btn btn-sm btn-outline-secondary" id="btnToday"><i class="bi bi-calendar-event me-1"></i>Hari ini</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="stateBox"></div>
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="card overflow-hidden">
+            <div class="card-header-accent">
+                <div class="card-header-accent-left">
+                    <div class="card-header-accent-icon"><i class="bi bi-list-ol"></i></div>
+                    <div>
+                        <div class="card-header-accent-title" id="itemsTitle">Daftar pekerjaan</div>
+                        <div class="card-header-accent-subtitle" id="saveState">Tersimpan otomatis saat mengetik</div>
+                    </div>
+                </div>
+                <div class="card-header-accent-actions">
+                    <button class="btn btn-outline-secondary btn-sm" id="btnPaste" data-bs-toggle="modal" data-bs-target="#pasteModal"><i class="bi bi-clipboard-plus me-1"></i>Tempel teks</button>
+                    <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus-lg me-1"></i>Tambah pekerjaan</button>
+                </div>
+            </div>
+            <ol class="rh-items" id="items"></ol>
+            <div class="card-body border-top" id="quickWrap">
+                <div class="small text-secondary mb-2"><i class="bi bi-lightning-charge me-1"></i>Tambah cepat pekerjaan rutin</div>
+                <div class="rh-quick" id="quick"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-send me-2"></i>Kirim ke Supervisor</div>
+            <div class="card-body">
+                <div id="sendInfo" class="small mb-3"></div>
+                <button class="btn btn-primary w-100" id="btnSend"><i class="bi bi-send me-1"></i>Kirim ke Spv</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><i class="bi bi-whatsapp me-2"></i>Teks WhatsApp (opsional)</div>
+            <div class="card-body">
+                <pre class="rh-wa" id="waText"></pre>
+                <button class="btn btn-outline-secondary btn-sm w-100 mt-2" id="btnCopy"><i class="bi bi-clipboard me-1"></i>Salin teks</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="pasteModal" tabindex="-1" aria-labelledby="pasteTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pasteTitle"><i class="bi bi-clipboard-plus me-2"></i>Tempel teks report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-secondary mb-2">Tempel report yang biasa dikirim ke WhatsApp. Judul/tanggal dilewati, tiap nomor atau baris "-" jadi satu pekerjaan, sub-poin dan grup "#" digabung ke pekerjaannya.</p>
+                <textarea class="form-control mb-3" id="pasteText" rows="8" placeholder="Daily Report ...&#10;1. ...&#10;2. ..."></textarea>
+                <div class="small fw-semibold mb-1" id="pasteCount">Pratinjau</div>
+                <ol class="rh-day-items small" id="pastePreview"></ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="pasteApply" disabled><i class="bi bi-plus-lg me-1"></i>Tambahkan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="pageData">{{ {
+    'startDate': start_date,
+    'today': now().strftime('%Y-%m-%d'),
+    'name': current_user.name,
+    'categories': categories,
+    'quick': quick,
+    'auto': auto_category,
+    'keywords': keywords,
+    'csrf': csrf_token(),
+} | tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/report.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "_macros.html" import state_badge, item_list %}
+{% block title %}Riwayat{% endblock %}
+{% block heading %}Riwayat Report{% endblock %}
+{% block heading_icon %}bi-clock-history{% endblock %}
+{% block heading_subtitle %}Semua report harian Anda{% endblock %}
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form class="row g-2 align-items-end" method="get">
+            <div class="col-12 col-md-5">
+                <input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Cari pekerjaan…">
+            </div>
+            <div class="col-6 col-md-3">
+                <select name="kategori" class="form-select form-select-sm">
+                    <option value="">Semua kategori</option>
+                    {% for c in categories %}<option {{ 'selected' if cat == c }}>{{ c }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <input name="bulan" type="month" value="{{ month }}" class="form-control form-control-sm" title="Bulan">
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-1">
+                <button class="btn btn-sm btn-primary flex-fill" title="Terapkan filter"><i class="bi bi-funnel"></i></button>
+                <a href="{{ url_for('report.history') }}" class="btn btn-sm btn-outline-secondary" title="Reset"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="card-header-accent">
+        <div class="card-header-accent-left">
+            <div class="card-header-accent-icon"><i class="bi bi-list-ul"></i></div>
+            <div>
+                <div class="card-header-accent-title">Daftar report</div>
+                <div class="card-header-accent-subtitle">{{ pagination.total }} hari ditemukan</div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead><tr><th class="ps-3" style="width:160px">Tanggal</th><th>Pekerjaan</th><th class="pe-3" style="width:150px">Status</th></tr></thead>
+                <tbody>
+                {% for r, items in rows %}
+                <tr class="rh-day-row" onclick="location.href='{{ url_for('report.write', tanggal=r.date.isoformat()) }}'">
+                    <td class="ps-3 align-top">
+                        <div class="rh-day-date">{{ r.date.strftime('%d-%m-%Y') }}</div>
+                        <div class="small text-secondary">{{ r.date|hari }}{{ ' · arsip' if r.source == 'arsip' }}</div>
+                        {% if r.day_status %}<span class="rh-badge rh-badge-rutin mt-1">{{ r.day_status }}</span>{% endif %}
+                    </td>
+                    <td class="align-top">{{ item_list(items) }}</td>
+                    <td class="pe-3 align-top">{{ state_badge(r) }}
+                        {% if r.spv_note %}<div class="small text-secondary mt-1"><i class="bi bi-chat-left-text me-1"></i>{{ r.spv_note|truncate(60) }}</div>{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-secondary py-4">Belum ada report{{ ' yang cocok' if q or cat or month }}.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if pagination.pages > 1 %}
+    <div class="card-body border-top d-flex justify-content-between align-items-center">
+        <span class="small text-secondary">Halaman {{ pagination.page }} dari {{ pagination.pages }}</span>
+        <div class="d-flex gap-2">
+            {% set args = request.args.to_dict() %}
+            {% if pagination.has_prev %}{% set _ = args.update({'hal': pagination.prev_num}) %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('report.history', **args) }}"><i class="bi bi-chevron-left"></i> Sebelumnya</a>{% endif %}
+            {% if pagination.has_next %}{% set _ = args.update({'hal': pagination.next_num}) %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('report.history', **args) }}">Berikutnya <i class="bi bi-chevron-right"></i></a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

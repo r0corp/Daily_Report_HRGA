@@ -1,0 +1,1033 @@
+/* ============================================================
+   GAYA GLOBAL TERPUSAT - diambil dari Asset Tracker Simple
+   (app/static/css/style.css + blok <style> di base.html) supaya
+   kedua aplikasi terasa satu keluarga. Warna dark mode ada di
+   theme-dark.css, jangan ditulis di template.
+   ============================================================ */
+
+a {
+    text-decoration: none;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+}
+
+.table {
+    vertical-align: middle;
+}
+
+.table th {
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+
+/* ============================================================
+   TOMBOL SERAGAM
+   ============================================================ */
+
+.btn:not(.btn-close) {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: transform 0.15s ease, box-shadow 0.15s ease,
+        background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-sm:not(.btn-close) {
+    border-radius: 7px;
+}
+
+.btn:not(.btn-close):not(:disabled):not(.disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+}
+
+.btn:not(.btn-close):not(:disabled):not(.disabled):active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-group > .btn:hover {
+    transform: none;
+}
+
+
+/* ============================================================
+   HEADER KARTU BERWARNA - semua .card-header jadi gradient oranye
+   (merah di dark mode, lihat theme-dark.css).
+   ============================================================ */
+
+.card-header {
+    border-bottom: none;
+    color: #fff;
+    font-weight: 600;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+}
+
+.card-header h1, .card-header h2, .card-header h3,
+.card-header h4, .card-header h5, .card-header h6,
+.card-header small, .card-header strong,
+.card-header .text-muted,
+.card-header .card-title {
+    color: #fff !important;
+}
+
+.card-header i {
+    color: #fff;
+}
+
+.card-header .text-secondary {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Angka status di header (mis. total TOP 100% / belum 100%) tetap
+   kelihatan hijau/merah - dibuat pil putih supaya kontras di atas
+   gradient. */
+.card-header .text-success,
+.card-header .text-danger {
+    background: #fff;
+    padding: 0.1rem 0.55rem;
+    border-radius: 20px;
+    font-weight: 700;
+}
+
+/* Header kartu tindakan berbahaya (mis. Putus kontrak). */
+.card-header.text-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%) !important;
+    color: #fff !important;
+}
+
+.card-header .btn-primary {
+    --bs-btn-color: #ea580c;
+    --bs-btn-bg: #fff;
+    --bs-btn-border-color: #fff;
+    --bs-btn-hover-color: #ea580c;
+    --bs-btn-hover-bg: #e9ecef;
+    --bs-btn-hover-border-color: #e9ecef;
+}
+
+.card-header.d-flex > *:last-child {
+    margin-left: auto;
+}
+
+
+/* ============================================================
+   HEADER KOLOM TABEL - gradient di <thead>, sel <th> transparan
+   supaya gradient menyatu satu baris. Hanya di layar (cetak tetap
+   hemat tinta).
+   ============================================================ */
+
+@media screen {
+    thead,
+    .table-light {
+        background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+    }
+
+    thead th,
+    .table-light > tr > th,
+    .table-light th {
+        background-color: transparent !important;
+        color: #fff !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+}
+
+.table tfoot td {
+    background-color: var(--bs-tertiary-bg);
+}
+
+
+/* ============================================================
+   NAVBAR MELAYANG + SCROLL PROGRESS
+   ============================================================ */
+
+.app-header-backdrop {
+    position: fixed;
+    top: 0;
+    left: var(--navbar-backdrop-left, 0);
+    right: 0;
+    height: var(--navbar-backdrop-height, 14px);
+    background: var(--bs-tertiary-bg);
+    z-index: 1033;
+    pointer-events: none;
+}
+
+.app-header.navbar {
+    position: sticky;
+    top: 14px;
+    z-index: 1034;
+    margin: 14px 16px 22px;
+    border-radius: 14px;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+    border-bottom: 0;
+}
+
+/* 294px = lebar sidebar (250) + margin kiri-kanannya (14+14) + 16. */
+@media (min-width: 992px) {
+    .app-header.navbar {
+        margin-left: 294px;
+        transition: margin-left 0.3s ease;
+    }
+
+    body.sidebar-collapse .app-header.navbar {
+        margin-left: 16px;
+    }
+}
+
+.scroll-progress-clip {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.scroll-progress-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4px;
+    background: rgba(234, 88, 12, 0.15);
+}
+
+.scroll-progress-bar {
+    width: 100%;
+    height: 100%;
+    background: #ea580c;
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+@media (max-width: 575.98px) {
+    .app-header.navbar {
+        top: 10px;
+        margin: 10px 10px 18px;
+        border-radius: 12px;
+    }
+
+    .scroll-progress-clip {
+        border-radius: 12px;
+    }
+}
+
+
+/* ============================================================
+   SIDEBAR MELAYANG - position:fixed (bukan sticky bawaan AdminLTE
+   yang "lompat" saat mulai scroll); jarak kiri lewat "left" supaya
+   tidak bentrok dengan margin-left yang dipakai untuk menyembunyikan
+   sidebar (diatur JS di base.html).
+   ============================================================ */
+
+.app-sidebar.app-sidebar {
+    position: fixed !important;
+    top: 14px !important;
+    bottom: 14px !important;
+    left: 14px !important;
+    margin-left: 0 !important;
+    height: auto !important;
+    border-radius: 14px;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+}
+
+.sidebar-brand {
+    border-radius: 14px 14px 0 0;
+}
+
+@media (min-width: 992px) {
+    .app-main {
+        margin-left: 278px !important;
+        transition: margin-left 0.3s ease;
+    }
+
+    body.sidebar-collapse .app-main {
+        margin-left: 0 !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-sidebar.app-sidebar {
+        top: 10px !important;
+        bottom: 10px !important;
+        left: 10px !important;
+        border-radius: 12px;
+    }
+
+    .sidebar-brand {
+        border-radius: 12px 12px 0 0;
+    }
+}
+
+.nav-sidebar .nav-link p,
+.sidebar-menu .nav-link p {
+    margin-bottom: 0;
+}
+
+.sidebar-menu .nav-header {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    padding-top: 0.9rem;
+}
+
+html:not([data-bs-theme="dark"]) .sidebar-menu .nav-link.active {
+    background-color: #ea580c !important;
+    color: #fff !important;
+}
+
+html:not([data-bs-theme="dark"]) .sidebar-menu .nav-link.active .nav-icon,
+html:not([data-bs-theme="dark"]) .sidebar-menu .nav-link.active p {
+    color: #fff !important;
+}
+
+
+/* ============================================================
+   FOOTER - kartu dengan gaya sama seperti navbar
+   ============================================================ */
+
+.app-footer {
+    padding: 14px 20px;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    color: var(--bs-secondary-color);
+    margin: 10px 16px 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+}
+
+@media (min-width: 992px) {
+    .app-footer {
+        margin-left: 294px;
+        transition: margin-left 0.3s ease;
+    }
+
+    body.sidebar-collapse .app-footer {
+        margin-left: 16px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-footer {
+        margin: 10px;
+        border-radius: 12px;
+    }
+}
+
+.app-footer strong {
+    font-weight: 500;
+}
+
+
+/* ============================================================
+   PAGE HEADER CARD - header halaman terpusat (dirender base.html
+   dari block heading / heading_icon / heading_subtitle /
+   header_actions).
+   ============================================================ */
+
+.page-header-card {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    overflow: hidden;
+}
+
+.page-header-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #c2410c 0%, #ea580c 35%, #fdba74 50%, #ea580c 65%, #c2410c 100%);
+}
+
+.page-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.page-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.page-header-icon {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fff;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.28);
+}
+
+.page-header-title {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 700;
+    color: #212529;
+    overflow-wrap: anywhere;
+}
+
+.page-header-subtitle {
+    margin-top: 3px;
+    color: #6c757d;
+    font-size: 13.5px;
+}
+
+.page-header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+    .page-header-card {
+        padding: 18px;
+    }
+
+    .page-header-actions {
+        width: 100%;
+    }
+
+    .page-header-actions .btn {
+        flex: 1 1 auto;
+    }
+}
+
+
+/* ============================================================
+   CARD HEADER ACCENT - header kartu daftar (badge ikon + garis
+   aksen tipis), dipakai di tabel utama tiap halaman.
+   ============================================================ */
+
+.card-header-accent {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eeeeee;
+    overflow: hidden;
+}
+
+.card-header-accent::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #c2410c 0%, #ea580c 35%, #fdba74 50%, #ea580c 65%, #c2410c 100%);
+}
+
+.card-header-accent-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.card-header-accent-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    color: #fff;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+}
+
+.card-header-accent-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #212529;
+}
+
+.card-header-accent-subtitle {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.card-header-accent-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+
+/* ============================================================
+   KARTU KPI DASHBOARD
+   ============================================================ */
+
+.dashboard-kpi-card {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+}
+
+.dashboard-kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #c2410c 0%, #ea580c 35%, #fdba74 50%, #ea580c 65%, #c2410c 100%);
+}
+
+.dashboard-kpi-card .card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dashboard-kpi-label {
+    color: #6c757d;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.dashboard-kpi-value {
+    font-size: 1.8rem;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.dashboard-kpi-icon {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    color: #fff;
+}
+
+.dashboard-kpi-icon-primary {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+}
+
+.dashboard-kpi-icon-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.28);
+}
+
+.dashboard-kpi-icon-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28);
+}
+
+.dashboard-kpi-icon-info {
+    background: linear-gradient(135deg, #0dcaf0 0%, #087990 100%);
+    box-shadow: 0 4px 12px rgba(13, 202, 240, 0.28);
+}
+
+@media (max-width: 575.98px) {
+    .dashboard-kpi-value {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-kpi-icon {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        font-size: 20px;
+    }
+}
+
+
+/* ============================================================
+   KALENDER (Flatpickr) - semua <input type="date">
+   ============================================================ */
+
+.flatpickr-calendar {
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+    border: 1px solid #e9ecef;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected:focus {
+    background: #ea580c;
+    border-color: #ea580c;
+}
+
+.flatpickr-day.today {
+    border-color: #ea580c;
+}
+
+.flatpickr-day.today:hover,
+.flatpickr-day.today:focus {
+    background: #ea580c;
+    border-color: #ea580c;
+    color: #fff;
+}
+
+.flatpickr-day:hover {
+    background: #fff7ed;
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month,
+.flatpickr-weekdays {
+    border-radius: 12px 12px 0 0;
+}
+
+
+/* ============================================================
+   IKON NAVBAR & DROPDOWN
+   ============================================================ */
+
+.navbar-nav > .nav-item > .nav-link {
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+    transition: background-color 0.15s ease;
+}
+
+.navbar-nav > .nav-item > .nav-link:hover,
+.navbar-nav > .nav-item > .nav-link:focus,
+.navbar-nav > .nav-item.show > .nav-link {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.navbar-nav > .nav-item > .nav-link > i.bi {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.navbar-nav .dropdown-menu {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.16);
+    transform-origin: top right;
+    animation: navbar-dropdown-pop 0.16s ease;
+}
+
+@keyframes navbar-dropdown-pop {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* ============================================================
+   USER MENU DROPDOWN (profil header)
+   ============================================================ */
+
+.user-menu-dropdown {
+    width: 250px;
+}
+
+.user-menu-header {
+    position: relative;
+    overflow: hidden;
+    padding: 1rem 0.85rem 0.85rem;
+    background: linear-gradient(135deg, #ea580c 0%, #9a3412 100%);
+}
+
+.user-menu-header::before {
+    content: "";
+    position: absolute;
+    top: -40px;
+    right: -35px;
+    width: 105px;
+    height: 105px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.user-menu-header::after {
+    content: "";
+    position: absolute;
+    bottom: -50px;
+    left: -25px;
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.user-menu-header-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.user-menu-avatar-wrap {
+    position: relative;
+    width: 48px;
+    margin-bottom: 0.2rem;
+}
+
+.user-menu-online-dot {
+    position: absolute;
+    right: 1px;
+    bottom: 1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bs-success);
+    border: 2px solid #9a3412;
+}
+
+.user-menu-avatar {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.user-menu-name {
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.user-menu-username {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.68rem;
+}
+
+.user-menu-role-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    color: #fff;
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.user-menu-footer {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.6rem;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.user-menu-footer > * {
+    flex: 1 1 0;
+}
+
+.user-menu-footer .btn {
+    width: 100%;
+}
+
+.user-menu-footer .btn-profile {
+    --bs-btn-color: #ea580c;
+    --bs-btn-bg: var(--bs-primary-bg-subtle);
+    --bs-btn-border-color: var(--bs-primary-bg-subtle);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #ea580c;
+    --bs-btn-hover-border-color: #ea580c;
+}
+
+
+/* ============================================================
+   RATAKAN FIELD - label di samping field; otomatis menumpuk kalau
+   ruang sempit, tanpa media query.
+   ============================================================ */
+
+.form-field-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 1rem;
+    row-gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.form-field-row > label {
+    flex: 0 0 11rem;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.form-field-row > .field {
+    flex: 1 1 18rem;
+    min-width: 0;
+}
+
+.required::after {
+    content: " *";
+    color: var(--bs-danger);
+}
+
+
+/* ============================================================
+   KHUSUS LEGAL CONTRACT
+   ============================================================ */
+
+.nav-tabs .nav-link {
+    font-weight: 600;
+}
+
+.timeline-step {
+    border-left: 2px solid var(--bs-border-color);
+    padding: 0 0 0.9rem 1rem;
+    position: relative;
+}
+
+.timeline-step::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bs-secondary-bg);
+    border: 2px solid var(--bs-secondary);
+}
+
+.timeline-step.current::before {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.timeline-step.late::before {
+    background: var(--bs-danger);
+    border-color: var(--bs-danger);
+}
+
+.row-addendum td:first-child {
+    padding-left: 1.75rem;
+}
+
+.text-pre {
+    white-space: pre-wrap;
+}
+
+
+/* ============================================================
+   PENGINGAT KONTRAK - lonceng navbar, dropdown, dan toast
+   ============================================================ */
+
+.reminder-bell-badge {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #dc3545;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 17px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--bs-body-bg);
+}
+
+.reminder-dropdown {
+    width: 340px;
+    max-width: calc(100vw - 24px);
+}
+
+.reminder-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0.7rem 0.9rem;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: linear-gradient(135deg, #ea580c 0%, #9a3412 100%);
+}
+
+.reminder-dropdown-header .btn-link {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    opacity: 0.9;
+}
+
+.reminder-dropdown-list {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.reminder-dropdown-footer {
+    display: block;
+    padding: 0.55rem;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.reminder-empty {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--bs-secondary-color);
+}
+
+.reminder-item {
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.65rem 0.9rem;
+    color: var(--bs-body-color);
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+    transition: background-color 0.15s ease;
+}
+
+.reminder-item:hover {
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+}
+
+.reminder-item.is-unread {
+    background: rgba(234, 88, 12, 0.06);
+    box-shadow: inset 3px 0 0 #ea580c;
+}
+
+.reminder-item-icon {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 15px;
+}
+
+.reminder-urgency-low {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+}
+
+.reminder-urgency-mid {
+    background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+}
+
+.reminder-urgency-high {
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+}
+
+.reminder-item-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.reminder-item-title {
+    font-weight: 700;
+    font-size: 0.84rem;
+    overflow-wrap: anywhere;
+}
+
+.reminder-item-meta {
+    font-size: 0.74rem;
+    color: var(--bs-secondary-color);
+}
+
+.reminder-toasts {
+    z-index: 1090;
+}
+
+/* Latar solid - toast bawaan Bootstrap semi transparan, isi halaman di
+   belakangnya jadi ikut terlihat. */
+.reminder-toast {
+    --bs-toast-bg: var(--bs-body-bg);
+    background-color: var(--bs-body-bg);
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.reminder-toast .toast-header {
+    color: #fff;
+    border-bottom: none;
+    background: linear-gradient(135deg, #ea580c 0%, #9a3412 100%);
+}
+
+.reminder-toast .toast-header small {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 700;
+}
+
+.reminder-toast .reminder-item {
+    border-bottom: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.sidebar-menu .nav-link .nav-badge {
+    float: right;
+    font-size: 0.68rem;
+}

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Rekap{% endblock %}
+{% block heading %}Rekap Report{% endblock %}
+{% block heading_icon %}bi-bar-chart-line{% endblock %}
+{% block heading_subtitle %}{{ first|tanggal(False) }} – {{ end|tanggal(False) }}{% endblock %}
+{% block header_actions %}
+<a href="{{ url_for('spv.rekap_export', **request.args) }}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i>Export Excel</a>
+{% endblock %}
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form class="row g-2 align-items-end" method="get">
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small mb-1" for="dari">Dari bulan</label>
+                <input type="month" name="dari" id="dari" value="{{ dari }}" class="form-control form-control-sm">
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small mb-1" for="sampai">Sampai bulan</label>
+                <input type="month" name="sampai" id="sampai" value="{{ sampai }}" class="form-control form-control-sm">
+            </div>
+            {% if current_user.is_spv %}
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small mb-1" for="tim">Tim</label>
+                <select name="tim" id="tim" class="form-select form-select-sm">
+                    <option value="">Semua tim</option>
+                    {% for t in TEAMS %}<option {{ 'selected' if team == t }}>{{ t }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3 col-xl-3">
+                <label class="form-label small mb-1" for="staf">Staf</label>
+                <select name="staf" id="staf" class="form-select form-select-sm">
+                    <option value="">Semua staf</option>
+                    {% for u in staff_options %}<option value="{{ u.id }}" {{ 'selected' if user_id == u.id }}>{{ u.name }} ({{ u.team }})</option>{% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-12 col-xl d-flex gap-1">
+                <button class="btn btn-sm btn-primary"><i class="bi bi-funnel me-1"></i>Tampilkan</button>
+                <a href="{{ url_for('spv.rekap') }}" class="btn btn-sm btn-outline-secondary" title="Reset"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% set kpis = [
+    ('Total pekerjaan', kpi.total, 'bi-list-check', 'primary'),
+    ('Hari kerja tercatat', kpi.days, 'bi-calendar-check', 'info'),
+    ('Insidental', kpi.total - kpi.rutin, 'bi-tools', 'primary'),
+    ('Rutin', kpi.rutin, 'bi-arrow-repeat', 'slate'),
+] %}
+<div class="row g-3 mb-3">
+    {% for label, value, icon, color in kpis %}
+    <div class="col-6 col-xl-3">
+        <div class="card dashboard-kpi-card">
+            <div class="card-body">
+                <div>
+                    <div class="dashboard-kpi-label">{{ label }}</div>
+                    <div class="dashboard-kpi-value tabular">{{ '{:,}'.format(value).replace(',', '.') }}</div>
+                </div>
+                <div class="dashboard-kpi-icon dashboard-kpi-icon-{{ color }}"><i class="bi {{ icon }}"></i></div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if current_user.is_spv %}
+<div class="card overflow-hidden mb-3">
+    <div class="card-header-accent">
+        <div class="card-header-accent-left">
+            <div class="card-header-accent-icon"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="card-header-accent-title">Per staf</div>
+                <div class="card-header-accent-subtitle">{{ kpi.people }} staf mengirim report di periode ini</div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead><tr><th class="ps-3">Nama</th><th>Tim</th><th class="text-end">Hari kerja</th><th class="text-end">Pekerjaan</th><th class="text-end">Rutin</th><th class="text-end">Cuti/sakit/izin</th><th class="pe-3">Kategori terbanyak</th></tr></thead>
+                <tbody>
+                {% for u in users %}{% set s = per_user[u] %}
+                <tr>
+                    <td class="ps-3 fw-semibold text-nowrap"><a href="{{ url_for('spv.rekap', dari=dari, sampai=sampai, staf=u.id) }}">{{ u.name }}</a></td>
+                    <td class="text-secondary text-nowrap">{{ u.team }}</td>
+                    <td class="text-end tabular">{{ s.days }}</td>
+                    <td class="text-end tabular fw-semibold">{{ s['items'] }}</td>
+                    <td class="text-end tabular">{{ s.rutin }}</td>
+                    <td class="text-end tabular">{{ s.off or '' }}</td>
+                    <td class="pe-3">{% for c, n in s.cats.most_common(3) %}<span class="rh-badge me-1">{{ c }} · {{ n }}</span>{% endfor %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-secondary py-4">Belum ada report terkirim di periode ini.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card overflow-hidden">
+    <div class="card-header-accent">
+        <div class="card-header-accent-left">
+            <div class="card-header-accent-icon"><i class="bi bi-diagram-3"></i></div>
+            <div>
+                <div class="card-header-accent-title">Pekerjaan per kategori</div>
+                <div class="card-header-accent-subtitle rh-legend"><span><i style="background:var(--rh-accent)"></i>Insidental</span><span><i style="background:var(--rh-rutin)"></i>Rutin</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead><tr><th class="ps-3">Kategori</th><th style="width:40%">Proporsi</th><th class="text-end">Insidental</th><th class="text-end">Rutin</th><th class="text-end pe-3">Total</th></tr></thead>
+                <tbody>
+                {% set max = cats[0][1] if cats else 1 %}
+                {% for c, n in cats %}{% set r = cats_rutin[c] %}
+                <tr>
+                    <td class="ps-3">{{ c }}</td>
+                    <td><div class="rh-bar"><i class="ins" style="width:{{ (n - r) / max * 100 }}%"></i><i class="rut" style="width:{{ r / max * 100 }}%"></i></div></td>
+                    <td class="text-end tabular">{{ n - r }}</td>
+                    <td class="text-end tabular">{{ r }}</td>
+                    <td class="text-end pe-3 tabular fw-semibold">{{ n }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-secondary py-4">Belum ada data di periode ini.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_macros.html" import state_badge %}
+{% block title %}Report {{ report.user.name }}{% endblock %}
+{% block heading %}{{ report.user.name }}{% endblock %}
+{% block heading_icon %}bi-person-lines-fill{% endblock %}
+{% block heading_subtitle %}{{ report.user.team }} · {{ report.date|tanggal }}{% endblock %}
+{% block header_actions %}
+<a href="{{ url_for('spv.dashboard', tanggal=report.date.isoformat()) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Kembali</a>
+{% if prev_id %}<a href="{{ url_for('spv.detail', report_id=prev_id) }}" class="btn btn-outline-secondary btn-sm" title="Staf sebelumnya"><i class="bi bi-chevron-left"></i></a>{% endif %}
+{% if next_id %}<a href="{{ url_for('spv.detail', report_id=next_id) }}" class="btn btn-outline-secondary btn-sm" title="Staf berikutnya"><i class="bi bi-chevron-right"></i></a>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="card overflow-hidden">
+            <div class="card-header-accent">
+                <div class="card-header-accent-left">
+                    <div class="card-header-accent-icon"><i class="bi bi-list-ol"></i></div>
+                    <div>
+                        <div class="card-header-accent-title">Daftar pekerjaan ({{ report.items|length }})</div>
+                        <div class="card-header-accent-subtitle">
+                            {% if report.submitted_at %}Dikirim {{ report.submitted_at.strftime('%d-%m-%Y %H:%M') }}{% endif %}
+                            {% if report.source == 'arsip' %} · arsip Sticky Notes{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-header-accent-actions">{{ state_badge(report) }}</div>
+            </div>
+            {% if report.day_status %}
+            <div class="alert alert-warning rounded-0 border-0 mb-0"><i class="bi bi-calendar-x me-1"></i>Status hari: <strong>{{ report.day_status }}</strong></div>
+            {% endif %}
+            <ol class="rh-items">
+                {% for it in report.items %}
+                <li class="rh-item">
+                    <span class="rh-num">{{ loop.index }}</span>
+                    <div style="min-width:0">
+                        <div class="text-pre" style="overflow-wrap:anywhere">{{ it.text }}</div>
+                        <div class="rh-item-meta">
+                            <span class="rh-badge">{{ it.cat }}</span>
+                            {% if it.rutin %}<span class="rh-badge rh-badge-rutin">Rutin</span>{% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                <li class="rh-item"><span></span><span class="text-secondary">Tidak ada daftar pekerjaan.</span></li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-clipboard-check me-2"></i>Pemeriksaan Spv</div>
+            <div class="card-body">
+                {% if report.reviewed_at %}
+                <p class="small text-secondary mb-2">Terakhir oleh {{ report.reviewed_by.name if report.reviewed_by else '-' }},
+                    {{ report.reviewed_at.strftime('%d-%m-%Y %H:%M') }}</p>
+                {% endif %}
+                <form method="post" action="{{ url_for('spv.review', report_id=report.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next_id" value="{{ next_id or '' }}">
+                    <label class="form-label small" for="note">Catatan untuk staf (opsional saat menandai sudah dicek)</label>
+                    <textarea class="form-control form-control-sm mb-3" id="note" name="note" rows="3">{{ report.spv_note or '' }}</textarea>
+                    {% if report.state == 'checked' %}
+                    <button class="btn btn-outline-secondary w-100" name="action" value="reopen"><i class="bi bi-arrow-counterclockwise me-1"></i>Batalkan tanda sudah dicek</button>
+                    {% else %}
+                    <button class="btn btn-primary w-100 mb-2" name="action" value="check">
+                        <i class="bi bi-check2-all me-1"></i>Tandai sudah dicek{{ ' & lanjut' if next_id }}</button>
+                    <button class="btn btn-outline-warning w-100" name="action" value="revision"><i class="bi bi-arrow-counterclockwise me-1"></i>Minta perbaikan</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><i class="bi bi-whatsapp me-2"></i>Teks report</div>
+            <div class="card-body"><pre class="rh-wa mb-0">{{ wa }}</pre></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,331 @@
+/* ============================================================
+   KHUSUS DAILY REPORT HRGA - style.css & theme-dark.css diambil dari
+   Legal Contract dengan aksen biru diganti oranye Daily Report
+   (#EA580C, sesuai palet aplikasi internal). File ini hanya menambah
+   primary oranye Bootstrap (light) + komponen report.
+   Hijau hanya untuk status berhasil ("Sudah dicek"), bukan brand.
+   ============================================================ */
+
+:root,
+[data-bs-theme="light"] {
+    --bs-primary: #ea580c;
+    --bs-primary-rgb: 234, 88, 12;
+    --bs-primary-text-emphasis: #7c2d12;
+    --bs-primary-bg-subtle: #ffedd5;
+    --bs-primary-border-subtle: #fed7aa;
+    --bs-link-color: #ea580c;
+    --bs-link-color-rgb: 234, 88, 12;
+    --bs-link-hover-color: #c2410c;
+    --bs-link-hover-color-rgb: 194, 65, 12;
+    --rh-accent: #ea580c;
+    --rh-accent-soft: #fff7ed;
+    /* Rutin = slate netral supaya tidak tertukar dengan aksen oranye. */
+    --rh-rutin: #475569;
+    --rh-rutin-soft: #eef2f6;
+}
+
+[data-bs-theme="dark"] {
+    --rh-accent: #f97316;
+    --rh-accent-soft: rgba(249, 115, 22, 0.12);
+    --rh-rutin: #94a3b8;
+    --rh-rutin-soft: rgba(148, 163, 184, 0.16);
+}
+
+.btn-primary {
+    --bs-btn-bg: #ea580c;
+    --bs-btn-border-color: #ea580c;
+    --bs-btn-hover-bg: #c2410c;
+    --bs-btn-hover-border-color: #c2410c;
+    --bs-btn-active-bg: #c2410c;
+    --bs-btn-active-border-color: #c2410c;
+    --bs-btn-disabled-bg: #ea580c;
+    --bs-btn-disabled-border-color: #ea580c;
+    --bs-btn-focus-shadow-rgb: 234, 88, 12;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #ea580c;
+    --bs-btn-border-color: #ea580c;
+    --bs-btn-hover-bg: #ea580c;
+    --bs-btn-hover-border-color: #ea580c;
+    --bs-btn-active-bg: #ea580c;
+    --bs-btn-active-border-color: #ea580c;
+    --bs-btn-focus-shadow-rgb: 234, 88, 12;
+}
+
+.form-check-input:checked {
+    background-color: var(--rh-accent);
+    border-color: var(--rh-accent);
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    border-color: var(--rh-accent);
+    box-shadow: 0 0 0 0.2rem rgba(234, 88, 12, 0.2);
+}
+
+.sidebar-brand .brand-link i {
+    color: var(--rh-accent);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* ---------- Daftar item pekerjaan (Tulis) ---------- */
+
+.rh-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.rh-item {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.rh-item:last-child {
+    border-bottom: 0;
+}
+
+.rh-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+}
+
+[data-bs-theme="dark"] .rh-num {
+    background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+}
+
+.rh-item textarea {
+    resize: none;
+    overflow: hidden;
+    min-height: 38px;
+}
+
+.rh-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.rh-item-meta .form-select {
+    width: auto;
+    max-width: 100%;
+}
+
+.rh-auto {
+    font-size: 11.5px;
+    color: var(--bs-secondary-color);
+}
+
+.rh-item-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.rh-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ---------- Teks WhatsApp ---------- */
+
+.rh-wa {
+    margin: 0;
+    padding: 12px 14px;
+    max-height: 420px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    border-radius: 10px;
+    background: var(--bs-tertiary-bg);
+    border: 1px dashed var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .rh-wa {
+    background: #20232c;
+    border-color: #2c2f38;
+}
+
+/* ---------- Badge kategori & rutin ---------- */
+
+.rh-badge {
+    display: inline-block;
+    padding: 0.18rem 0.55rem;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--rh-accent);
+    background: var(--rh-accent-soft);
+}
+
+.rh-badge-rutin {
+    color: var(--rh-rutin);
+    background: var(--rh-rutin-soft);
+}
+
+/* ---------- Status report ---------- */
+
+.rh-state {
+    font-weight: 600;
+}
+
+.rh-state-draft {
+    color: var(--bs-secondary-color);
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+}
+
+.rh-state-sent {
+    color: #fff;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+}
+
+.rh-state-revision {
+    color: #9f1239;
+    background: #ffe4e6;
+}
+
+.rh-state-checked {
+    color: #14532d;
+    background: #dcfce7;
+}
+
+[data-bs-theme="dark"] .rh-state-sent {
+    background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+}
+
+[data-bs-theme="dark"] .rh-state-revision {
+    color: #fda4af;
+    background: rgba(244, 63, 94, 0.18);
+}
+
+[data-bs-theme="dark"] .rh-state-checked {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.16);
+}
+
+.list-group-item-action:hover .fw-semibold {
+    color: var(--rh-accent);
+}
+
+/* ---------- Riwayat ---------- */
+
+.rh-day-row {
+    cursor: pointer;
+}
+
+.rh-day-date {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rh-day-items {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+.rh-day-items li {
+    overflow-wrap: anywhere;
+    margin-bottom: 2px;
+}
+
+mark {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: #fff3cd;
+}
+
+[data-bs-theme="dark"] mark {
+    background: #5c4a14;
+    color: #f1f3f5;
+}
+
+/* ---------- Rekap ---------- */
+
+.rh-bar {
+    display: flex;
+    height: 10px;
+    min-width: 120px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--bs-tertiary-bg);
+}
+
+[data-bs-theme="dark"] .rh-bar {
+    background: #20232c;
+}
+
+.rh-bar i {
+    display: block;
+    height: 100%;
+}
+
+.rh-bar .ins {
+    background: var(--rh-accent);
+}
+
+.rh-bar .rut {
+    background: var(--rh-rutin);
+}
+
+.rh-legend {
+    display: flex;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+}
+
+.rh-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: -1px;
+}
+
+/* KPI: primary = aksen oranye (style.css), success = status berhasil,
+   slate = pekerjaan rutin. */
+.dashboard-kpi-icon-success {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.28);
+}
+
+.dashboard-kpi-icon-slate {
+    background: linear-gradient(135deg, #64748b 0%, #334155 100%);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.28);
+}
+
+/* Clearfix ::after bawaan AdminLTE ikut jadi item flex dan mendorong
+   ikon KPI ke tengah. */
+.dashboard-kpi-card .card-body::after {
+    display: none;
+}
+
+.tabular {
+    font-variant-numeric: tabular-nums;
+}
