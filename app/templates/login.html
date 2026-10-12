@@ -82,7 +82,18 @@
         .login-submit-btn { padding: 10px; font-weight: 700; border-radius: 10px; margin-top: 8px; }
         .login-hint { text-align: center; font-size: 12px; color: var(--bs-secondary-color); margin-top: 16px; margin-bottom: 0; }
         @media (max-width: 860px) { .login-brand-panel { flex-basis: 40%; padding: 32px 24px; } .login-brand-desc { max-width: none; } .login-form-panel { padding: 32px 28px; } }
-        @media (max-width: 576px) { .login-split-card { flex-direction: column; min-height: 0; } .login-brand-panel { flex: 0 0 auto; padding: 28px; } .login-form-panel { padding: 28px 24px; } }
+        /* HP: panel brand jadi pita ringkas supaya form login langsung terlihat. */
+        @media (max-width: 576px) {
+            .login-split-card { flex-direction: column; min-height: 0; }
+            .login-brand-panel { flex: 0 0 auto; padding: 20px 24px; }
+            .login-brand-inner { display: flex; align-items: center; gap: 14px; }
+            .login-brand-logo { width: 42px; height: 42px; margin-bottom: 0; flex-shrink: 0; font-size: 19px; }
+            .login-brand-title { font-size: 17px; margin-bottom: 2px; }
+            .login-brand-subtitle { font-size: 11px; margin-bottom: 0; }
+            .login-brand-desc, .login-brand-circle-2 { display: none; }
+            .login-form-panel { padding: 20px 24px 26px; }
+            .login-form-toolbar { margin-bottom: 4px; }
+        }
     </style>
 </head>
 <body>
@@ -117,9 +128,11 @@
                 <div class="login-brand-circle login-brand-circle-3"></div>
                 <div class="login-brand-inner">
                     <div class="login-brand-logo"><i class="bi bi-journal-check"></i></div>
-                    <div class="login-brand-title">Selamat Datang</div>
-                    <div class="login-brand-subtitle">Daily Report HRGA</div>
-                    <p class="login-brand-desc mb-0">Catat pekerjaan harian dan kirim langsung ke Supervisor HRGA, tanpa perlu copy-paste ke WhatsApp.</p>
+                    <div>
+                        <div class="login-brand-title">Selamat Datang</div>
+                        <div class="login-brand-subtitle">Daily Report HRGA</div>
+                        <p class="login-brand-desc mb-0">Catat pekerjaan harian dan kirim langsung ke Supervisor HRGA, tanpa perlu copy-paste ke WhatsApp.</p>
+                    </div>
                 </div>
             </div>
 

@@ -110,58 +110,74 @@ function renderItems() {
     $("items").innerHTML = cur.items.map((it, k) => `
     <li class="rh-item" data-k="${k}">
       <span class="rh-num">${k + 1}</span>
-      <div style="min-width:0">
-        <textarea id="it-${k}" rows="1" class="form-control form-control-sm" ${ro ? "readonly" : ""}
-          placeholder="Tulis pekerjaan… (Enter untuk baris baru, awali '-' untuk rincian)">${esc(it.text)}</textarea>
+      <div class="rh-item-main">
+        <textarea id="it-${k}" rows="1" class="form-control rh-input" ${ro ? "readonly" : ""}
+          placeholder="${k === 0 ? "Contoh: Cleaning ruang meeting dan toilet" : "Tulis pekerjaan berikutnya…"}">${esc(it.text)}</textarea>
         <div class="rh-item-meta">
-          <select class="form-select form-select-sm" aria-label="Kategori" data-act="cat" ${ro ? "disabled" : ""}>${catOptions(it.cat)}</select>
-          ${CAN_AUTO ? `<span class="rh-auto">${it.manual ? '<i class="bi bi-hand-index me-1"></i>manual' : '<i class="bi bi-magic me-1"></i>otomatis'}</span>` : ""}
-          <div class="form-check form-check-inline m-0">
-            <input class="form-check-input" type="checkbox" id="rt-${k}" data-act="rutin" ${it.rutin ? "checked" : ""} ${ro ? "disabled" : ""}>
-            <label class="form-check-label small" for="rt-${k}">Rutin</label>
-          </div>
-          ${ro ? "" : `<div class="rh-item-actions">
-            <button class="btn btn-sm btn-outline-secondary" data-act="up" title="Naikkan" ${k === 0 ? "disabled" : ""}><i class="bi bi-arrow-up"></i></button>
-            <button class="btn btn-sm btn-outline-danger" data-act="del" title="Hapus item"><i class="bi bi-trash"></i></button>
-          </div>`}
+          <label class="rh-pill rh-cat-pill${it.cat ? "" : " is-empty"}" title="Kategori (ketuk untuk mengganti)">
+            <i class="bi bi-tag"></i>
+            <select aria-label="Kategori" data-act="cat" ${ro ? "disabled" : ""}>${catOptions(it.cat)}</select>
+          </label>
+          <button type="button" class="rh-pill rh-rutin-pill${it.rutin ? " is-on" : ""}" data-act="rutin" ${ro ? "disabled" : ""}
+            aria-pressed="${it.rutin}" title="Tandai sebagai pekerjaan rutin"><i class="bi bi-arrow-repeat"></i>Rutin</button>
         </div>
       </div>
+      ${ro ? "" : `<button type="button" class="rh-del" data-act="del" title="Hapus pekerjaan ini" aria-label="Hapus pekerjaan ${k + 1}"><i class="bi bi-x-lg"></i></button>`}
     </li>`).join("");
     resizeAll();
-    ["btnAdd", "fStatus"].forEach(id => $(id).disabled = ro);
-    $("quickWrap").hidden = ro || (!P.quick.length && !prevAll.length);
+    $("btnAdd").disabled = ro;
     $("btnPaste").disabled = ro;
+    document.querySelectorAll(".rh-chip").forEach(c => c.disabled = ro);
+    $("quickWrap").hidden = ro || !P.quick.length;
     updateCounts();
 }
 
 function updateCounts() {
     const n = cur.items.filter(i => i.text.trim()).length;
-    $("itemsTitle").textContent = `Daftar pekerjaan (${n})`;
+    $("itemsTitle").textContent = n ? `Pekerjaan hari ini (${n})` : "Pekerjaan hari ini";
+    $("sendCount").textContent = cur.day_status && !n ? cur.day_status : `${n} pekerjaan`;
     $("waText").textContent = waText();
+    // Tombol "mulai cepat" hanya saat laporan masih kosong.
+    $("startBox").hidden = !cur.editable || n > 0;
+    $("btnCopyAll").hidden = !prevAll.length;
     renderState();
 }
 
 function renderState() {
-    const labels = { draft: ["Belum dikirim", "secondary", "bi-pencil"], sent: ["Terkirim ke Spv", "primary", "bi-send-check"],
-                     revision: ["Perlu perbaikan", "warning", "bi-arrow-counterclockwise"], checked: ["Sudah dicek Spv", "success", "bi-check2-all"] };
-    const [label, , icon] = labels[cur.state] || labels.draft;
     const hasContent = cur.items.some(i => i.text.trim()) || cur.day_status;
-    let info = `<div class="d-flex align-items-center gap-2 mb-1"><span class="badge rh-state rh-state-${cur.state}"><i class="bi ${icon} me-1"></i>${label}</span></div>`;
-    if (cur.submitted_at) info += `<div class="text-secondary">Dikirim ${esc(cur.submitted_at)}${cur.edited_after_submit ? " · <strong class='text-warning-emphasis'>diubah setelah dikirim, kirim ulang supaya Spv tahu</strong>" : ""}</div>`;
-    else if (cur.state === "draft") info += `<div class="text-secondary">Report tersimpan sebagai draft dan belum terlihat oleh Spv.</div>`;
+    const sent = cur.state === "sent" && !cur.edited_after_submit;
+    const canSend = cur.editable && hasContent && !sent;
+    let label = "Kirim ke Spv", icon = "bi-send-fill", info = "Belum dikirim";
+    if (cur.state === "sent" && cur.edited_after_submit) { label = "Kirim ulang"; info = "Ada perubahan, kirim ulang"; }
+    else if (sent) { label = "Terkirim"; icon = "bi-check2-circle"; info = `Dikirim ${esc(cur.submitted_at || "")}`; }
+    else if (cur.state === "revision") { label = "Kirim perbaikan"; info = "Spv minta perbaikan"; }
+    else if (cur.state === "checked") { label = "Sudah dicek"; icon = "bi-check2-all"; info = "Sudah dicek Spv"; }
+    else if (!hasContent) info = "Tulis minimal satu pekerjaan";
+    $("btnSend").disabled = !canSend;
+    $("btnSend").innerHTML = `<i class="bi ${icon}"></i><span>${label}</span>`;
+    $("btnSend").classList.toggle("is-done", sent || cur.state === "checked");
     $("sendInfo").innerHTML = info;
 
-    let canSend = cur.editable && hasContent && (cur.state !== "sent" || cur.edited_after_submit);
-    const sendLabel = cur.state === "sent" || cur.state === "revision" ? "Kirim ulang ke Spv" : "Kirim ke Spv";
-    for (const id of ["btnSend", "btnSendTop"]) {
-        $(id).disabled = !canSend;
-        $(id).innerHTML = `<i class="bi bi-send me-1"></i>${cur.state === "sent" && !cur.edited_after_submit ? "Sudah terkirim" : sendLabel}`;
-    }
-
+    const who = cur.reviewed_by ? ` (${esc(cur.reviewed_by)})` : "";
     let box = "";
-    if (cur.state === "revision") box = `<div class="alert alert-warning"><i class="bi bi-arrow-counterclockwise me-1"></i><strong>Spv meminta perbaikan${cur.reviewed_by ? " (" + esc(cur.reviewed_by) + ")" : ""}:</strong> ${esc(cur.spv_note || "")}<div class="small mt-1">Perbaiki daftar pekerjaan di bawah lalu tekan <strong>Kirim ulang ke Spv</strong>.</div></div>`;
-    else if (cur.state === "checked") box = `<div class="alert alert-success"><i class="bi bi-check2-all me-1"></i>Report ini sudah dicek${cur.reviewed_by ? " oleh " + esc(cur.reviewed_by) : ""} dan tidak bisa diubah lagi.${cur.spv_note ? `<div class="mt-1"><strong>Catatan Spv:</strong> ${esc(cur.spv_note)}</div>` : ""}</div>`;
+    if (cur.state === "revision") box = `<div class="rh-notice rh-notice-warn"><i class="bi bi-arrow-counterclockwise"></i><div><strong>Spv minta perbaikan${who}</strong><p>${esc(cur.spv_note || "")}</p><small>Perbaiki daftar di bawah, lalu tekan <b>Kirim perbaikan</b>.</small></div></div>`;
+    else if (cur.state === "checked") box = `<div class="rh-notice rh-notice-ok"><i class="bi bi-check2-all"></i><div><strong>Laporan sudah dicek Spv${who}</strong>${cur.spv_note ? `<p>${esc(cur.spv_note)}</p>` : "<p>Terima kasih, tidak ada yang perlu diubah.</p>"}</div></div>`;
+    else if (sent) box = `<div class="rh-notice rh-notice-sent"><i class="bi bi-send-check"></i><div><strong>Laporan terkirim ke Spv</strong><p>Dikirim ${esc(cur.submitted_at || "")}. Masih bisa diubah; kalau diubah, tekan Kirim ulang.</p></div></div>`;
     $("stateBox").innerHTML = box;
+}
+
+function renderDate() {
+    const d = parseISO(cur.date), today = parseISO(P.today);
+    const diff = Math.round((today - d) / 86400000);
+    $("dateLabel").textContent = diff === 0 ? "Hari ini" : diff === 1 ? "Kemarin" : `${diff} hari lalu`;
+    $("dateLabel").classList.toggle("is-past", diff > 0);
+    $("dateText").textContent = longDate(cur.date);
+    $("btnNext").disabled = diff <= 0;
+    document.querySelectorAll(".rh-chip").forEach(c => {
+        const on = c.dataset.status === (cur.day_status || "");
+        c.classList.toggle("is-on", on);
+        c.setAttribute("aria-checked", on);
+    });
 }
 
 // ---------- load / save ----------
@@ -187,9 +203,9 @@ async function load(date) {
     }
     if (!cur.items.length && cur.editable) cur.items.push(blank());
     if (fp) fp.setDate(date, false);
-    $("fStatus").value = cur.day_status || "";
-    $("pageSubtitle").textContent = longDate(date);
+    $("copyAllInfo").textContent = prevAll.length ? `${prevAll.length} pekerjaan dari ${prevDate}, tinggal diubah` : "";
     history.replaceState(null, "", "?tanggal=" + date);
+    renderDate();
     renderQuick();
     renderItems();
 }
@@ -227,15 +243,16 @@ function flush() { if (saveTimer) { clearTimeout(saveTimer); save(); } }
 async function send() {
     flush();
     await saving;
-    for (const id of ["btnSend", "btnSendTop"]) $(id).disabled = true;
+    $("btnSend").disabled = true;
     try {
         const data = await api("POST", `/api/report/${cur.date}/send`);
         Object.assign(cur, { state: data.state, submitted_at: data.submitted_at, edited_after_submit: false, editable: data.editable });
         renderState();
         setSaveState("Terkirim ke Spv");
+        window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
         renderState();
-        $("stateBox").innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-1"></i>${esc(e.message)}</div>`;
+        $("stateBox").innerHTML = `<div class="rh-notice rh-notice-warn"><i class="bi bi-exclamation-triangle"></i><div><strong>Belum terkirim</strong><p>${esc(e.message)}</p></div></div>`;
     }
 }
 
@@ -246,27 +263,48 @@ $("items").addEventListener("input", e => {
     const it = cur.items[+li.dataset.k];
     it.text = e.target.value;
     autosize(e.target);
-    if (CAN_AUTO && !it.manual) { it.cat = classify(it.text); li.querySelector("[data-act=cat]").value = it.cat; }
-    if (!it.manualRutin) { it.rutin = RUTIN.test(it.text); li.querySelector("[data-act=rutin]").checked = it.rutin; }
+    if (CAN_AUTO && !it.manual) {
+        it.cat = classify(it.text);
+        li.querySelector("[data-act=cat]").value = it.cat;
+        li.querySelector(".rh-cat-pill").classList.toggle("is-empty", !it.cat);
+    }
+    if (P.auto && !it.manualRutin) setRutin(li, it, RUTIN.test(it.text));
     markDirty();
 });
+// Enter di baris terakhir yang sudah terisi = langsung tambah pekerjaan baru
+// (Shift+Enter tetap baris baru untuk rincian).
+$("items").addEventListener("keydown", e => {
+    if (e.key !== "Enter" || e.shiftKey || e.target.tagName !== "TEXTAREA") return;
+    const k = +e.target.closest(".rh-item").dataset.k;
+    if (k === cur.items.length - 1 && e.target.value.trim() && !e.target.value.includes("\n")) {
+        e.preventDefault();
+        addItem();
+    }
+});
+function setRutin(li, it, on) {
+    it.rutin = on;
+    const b = li.querySelector("[data-act=rutin]");
+    b.classList.toggle("is-on", on);
+    b.setAttribute("aria-pressed", on);
+}
 $("items").addEventListener("change", e => {
     const li = e.target.closest(".rh-item");
-    if (!li) return;
+    if (!li || e.target.dataset.act !== "cat") return;
     const it = cur.items[+li.dataset.k];
-    if (e.target.dataset.act === "cat") {
-        it.cat = e.target.value; it.manual = true;
-        const a = li.querySelector(".rh-auto"); if (a) a.innerHTML = '<i class="bi bi-hand-index me-1"></i>manual';
-        markDirty();
-    }
-    if (e.target.dataset.act === "rutin") { it.rutin = e.target.checked; it.manualRutin = true; markDirty(); }
+    it.cat = e.target.value; it.manual = true;
+    li.querySelector(".rh-cat-pill").classList.toggle("is-empty", !it.cat);
+    markDirty();
 });
 $("items").addEventListener("click", e => {
     const b = e.target.closest("button");
     if (!b) return;
-    const k = +b.closest(".rh-item").dataset.k;
-    if (b.dataset.act === "del") { cur.items.splice(k, 1); if (!cur.items.length) cur.items.push(blank()); renderItems(); markDirty(); }
-    if (b.dataset.act === "up" && k > 0) { [cur.items[k - 1], cur.items[k]] = [cur.items[k], cur.items[k - 1]]; renderItems(); markDirty(); }
+    const li = b.closest(".rh-item"), k = +li.dataset.k, it = cur.items[k];
+    if (b.dataset.act === "del") {
+        cur.items.splice(k, 1);
+        if (!cur.items.length) cur.items.push(blank());
+        renderItems(); markDirty();
+    }
+    if (b.dataset.act === "rutin") { it.manualRutin = true; setRutin(li, it, !it.rutin); markDirty(); }
 });
 
 function addItem(text = "", rutin = false) {
@@ -280,9 +318,8 @@ function addItem(text = "", rutin = false) {
 $("btnAdd").onclick = () => addItem();
 
 function renderQuick() {
-    $("quick").innerHTML = P.quick.map((q, i) => `<button class="btn btn-sm btn-outline-primary text-start" data-q="${i}" title="${esc(q)}"><i class="bi bi-plus-circle me-1"></i>${esc(q.length > 48 ? q.slice(0, 46) + "…" : q)}</button>`).join("")
-        + (prevRutin.length ? `<button class="btn btn-sm btn-outline-secondary" id="btnCopyRutin"><i class="bi bi-arrow-repeat me-1"></i>Salin ${prevRutin.length} pekerjaan rutin (${esc(prevDate)})</button>` : "")
-        + (prevAll.length > prevRutin.length ? `<button class="btn btn-sm btn-outline-secondary" id="btnCopyAll"><i class="bi bi-files me-1"></i>Salin semua ${prevAll.length} pekerjaan dari report ${esc(prevDate)}</button>` : "");
+    $("quick").innerHTML = P.quick.map((q, i) =>
+        `<button type="button" class="rh-quick-btn" data-q="${i}" title="${esc(q)}"><i class="bi bi-plus"></i><span>${esc(q)}</span></button>`).join("");
 }
 
 function appendItems(list) {
@@ -354,24 +391,32 @@ $("pasteApply").addEventListener("click", () => {
 });
 document.getElementById("pasteModal").addEventListener("shown.bs.modal", () => $("pasteText").focus());
 $("quick").addEventListener("click", e => {
-    const b = e.target.closest("button");
+    const b = e.target.closest("button[data-q]");
     if (!b) return;
-    if (b.dataset.q) addItem(P.quick[+b.dataset.q], true);
-    if (b.id === "btnCopyRutin")
-        appendItems(prevRutin.map(i => ({ text: i.text, cat: i.cat, rutin: true, manual: true, manualRutin: true })));
-    if (b.id === "btnCopyAll")
-        appendItems(prevAll.map(i => ({ text: i.text, cat: i.cat, rutin: !!i.rutin, manual: true, manualRutin: true })));
+    addItem(P.quick[+b.dataset.q], true);
+    b.classList.add("is-added");
+    setTimeout(() => b.classList.remove("is-added"), 900);
 });
+$("btnCopyAll").onclick = () =>
+    appendItems(prevAll.map(i => ({ text: i.text, cat: i.cat, rutin: !!i.rutin, manual: true, manualRutin: true })));
 
-$("fStatus").onchange = () => { cur.day_status = $("fStatus").value; markDirty(); };
-$("btnToday").onclick = () => load(P.today);
-$("btnPrev").onclick = () => {
+document.querySelector(".rh-daystatus").addEventListener("click", e => {
+    const c = e.target.closest(".rh-chip");
+    if (!c || c.disabled) return;
+    cur.day_status = c.dataset.status;
+    renderDate();
+    markDirty();
+});
+function shiftDay(step) {
     const d = parseISO(cur.date);
-    do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
-    load(iso(d));
-};
+    do { d.setDate(d.getDate() + step); } while (d.getDay() === 0 || d.getDay() === 6);
+    const next = iso(d);
+    load(next > P.today ? P.today : next);
+}
+$("btnPrev").onclick = () => shiftDay(-1);
+$("btnNext").onclick = () => shiftDay(1);
+$("btnPickDate").onclick = () => fp && fp.open();
 $("btnSend").onclick = send;
-$("btnSendTop").onclick = send;
 $("btnCopy").onclick = async () => {
     const b = $("btnCopy"), h = b.innerHTML;
     try { await navigator.clipboard.writeText(waText()); b.innerHTML = '<i class="bi bi-check2 me-1"></i>Tersalin'; }
@@ -382,7 +427,8 @@ window.addEventListener("pagehide", flush);
 window.addEventListener("beforeunload", e => { if (dirty) { flush(); } });
 
 fp = flatpickr($("fDate"), {
-    dateFormat: "Y-m-d", altInput: true, altFormat: "d-m-Y", allowInput: true, disableMobile: true, maxDate: P.today,
+    dateFormat: "Y-m-d", disableMobile: true, maxDate: P.today, clickOpens: false,
+    positionElement: $("btnPickDate"),
     onChange: (sel, str) => { if (str && cur && str !== cur.date) load(str); },
 });
 load(P.startDate);
