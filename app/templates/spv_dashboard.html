@@ -18,7 +18,8 @@
 {%- endmacro %}
 
 {% block content %}
-<div class="rh-write">
+<div class="rh-write rh-layout">
+<div class="rh-main">
 
     <!-- Tanggal -->
     <div class="card rh-datebar">
@@ -81,6 +82,10 @@
     </section>
     {% endif %}
 
+    </div><!-- /rh-main -->
+
+    <!-- Web: kolom kanan; HP: lanjut di bawah -->
+    <aside class="rh-side rh-side-static">
     {% if groups.missing %}
     <section class="rh-group">
         <h3 class="rh-group-title"><i class="bi bi-person-dash"></i>Belum kirim <span class="rh-count">{{ groups.missing|length }}</span></h3>
@@ -115,6 +120,7 @@
         </div>
     </details>
     {% endif %}
+    </aside>
 </div>
 {% endblock %}
 {% block scripts %}

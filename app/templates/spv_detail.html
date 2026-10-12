@@ -2,7 +2,8 @@
 {% block title %}Laporan {{ report.user.name }}{% endblock %}
 {% block content %}
 {% set icons = {'sent': 'bi-send-check', 'revision': 'bi-arrow-counterclockwise', 'checked': 'bi-check2-all'} %}
-<div class="rh-write">
+<div class="rh-write rh-layout">
+<div class="rh-main">
 
     <!-- Navigasi antar laporan -->
     <div class="rh-review-nav">
@@ -67,13 +68,15 @@
             {% endfor %}
         </ol>
     </div>
+    </div><!-- /rh-main -->
 
-    <details class="rh-wa-details">
+    <!-- Web: panel kanan menempel; HP: aksi menempel di bawah layar -->
+    <aside class="rh-side">
+    <details class="card rh-side-card rh-wa-details">
         <summary><i class="bi bi-whatsapp me-1"></i>Lihat sebagai teks WhatsApp</summary>
         <pre class="rh-wa">{{ wa }}</pre>
     </details>
 
-    <!-- Aksi Spv (menempel di bawah layar) -->
     <form method="post" action="{{ url_for('spv.review', report_id=report.id) }}" class="rh-sendbar rh-review-bar" id="reviewForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if report.state == 'checked' %}
@@ -98,6 +101,7 @@
         {% if remaining %}<div class="rh-remaining">Sisa {{ remaining }} laporan lagi di tanggal ini</div>{% endif %}
         {% endif %}
     </form>
+    </aside>
 </div>
 {% endblock %}
 {% block scripts %}

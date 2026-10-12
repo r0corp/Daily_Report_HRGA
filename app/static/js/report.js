@@ -93,7 +93,9 @@ function waText() {
 function catOptions(sel) {
     let opts = P.categories.slice();
     if (sel && !opts.includes(sel)) opts.unshift(sel);
-    return (P.auto ? "" : `<option value=""${sel ? "" : " selected"}>Pilih kategori…</option>`) +
+    // Selalu ada pilihan kosong: baris yang belum diisi tidak boleh
+    // tampil seolah sudah berkategori (dulu IT jatuh ke opsi pertama).
+    return `<option value=""${sel ? "" : " selected"}>${CAN_AUTO ? "Kategori otomatis" : "Pilih kategori…"}</option>` +
         opts.map(c => `<option${c === sel ? " selected" : ""}>${esc(c)}</option>`).join("");
 }
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + 2 + "px"; }

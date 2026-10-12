@@ -243,9 +243,78 @@
 
 /* ---------- Tulis: tanggal ---------- */
 
-.rh-write {
-    max-width: 860px;
-    margin: 0 auto;
+/* ---------- Tata letak responsif ----------
+   HP/tablet: satu kolom; .rh-side memakai display:contents sehingga
+   isinya ikut mengalir di kolom utama (bilah Kirim tetap menempel di
+   bawah layar). Web (>=1200px): dua kolom memenuhi lebar layar, panel
+   samping menempel saat scroll. */
+
+.rh-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+.rh-main {
+    min-width: 0;
+}
+
+.rh-side {
+    display: contents;
+}
+
+.rh-side-card {
+    margin-top: 14px;
+}
+
+@media (min-width: 1200px) {
+    .rh-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 22px;
+        align-items: start;
+    }
+
+    .rh-side {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        position: sticky;
+        top: 96px;
+    }
+
+    .rh-side-card {
+        margin-top: 0;
+    }
+
+    /* Di web, bilah kirim menjadi kartu di panel samping. */
+    .rh-side .rh-sendbar {
+        position: static;
+        order: -1;
+        flex-direction: column;
+        align-items: stretch;
+        margin-top: 0;
+        padding: 18px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+    }
+
+    .rh-side .rh-sendbar .rh-sendbar-info strong {
+        font-size: 20px;
+    }
+
+    .rh-side .rh-send-btn {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .rh-side .rh-review-actions {
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 1600px) {
+    .rh-layout {
+        grid-template-columns: minmax(0, 1fr) 420px;
+    }
 }
 
 .rh-datebar {
@@ -1434,5 +1503,54 @@ summary.rh-group-title::-webkit-details-marker {
 @media (prefers-reduced-motion: reduce) {
     .rh-toast {
         transition: none;
+    }
+}
+
+/* ---------- Panel samping Tulis Report ---------- */
+
+.rh-quick-card {
+    padding: 16px 18px 18px;
+}
+
+.rh-quick-card .rh-quick {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.rh-quick-card .rh-quick-btn {
+    width: 100%;
+}
+
+.rh-side-card.rh-wa-details {
+    padding: 14px 18px;
+}
+
+.rh-side-card.rh-wa-details summary {
+    margin-bottom: 0;
+}
+
+.rh-side-card.rh-wa-details[open] summary {
+    margin-bottom: 10px;
+}
+
+/* HP: urutan di bawah kolom utama -> rutin, teks WA, lalu bilah kirim
+   yang menempel di bawah layar. */
+.rh-side > .rh-quick-card { order: 1; }
+.rh-side > .rh-wa-details { order: 2; }
+.rh-side > .rh-sendbar,
+.rh-side > .rh-review-bar { order: 3; }
+
+@media (min-width: 1200px) {
+    .rh-side > .rh-sendbar,
+    .rh-side > .rh-review-bar { order: -1; }
+    .rh-side > .rh-quick-card { order: 1; }
+    .rh-side > .rh-wa-details { order: 2; }
+}
+
+/* Panel kanan Report Masuk bisa panjang -> tidak menempel. */
+@media (min-width: 1200px) {
+    .rh-side.rh-side-static {
+        position: static;
+        gap: 0;
     }
 }

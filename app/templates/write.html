@@ -4,7 +4,8 @@
 {% block heading_icon %}bi-pencil-square{% endblock %}
 {% block heading_subtitle %}Tulis pekerjaan hari ini, lalu tekan Kirim ke Spv{% endblock %}
 {% block content %}
-<div class="rh-write">
+<div class="rh-write rh-layout">
+<div class="rh-main">
 
     <!-- 1. Tanggal -->
     <div class="card rh-datebar">
@@ -58,26 +59,31 @@
         <div class="rh-add-wrap">
             <button type="button" class="rh-add" id="btnAdd"><i class="bi bi-plus-lg"></i>Tambah pekerjaan</button>
         </div>
-        <div class="rh-quick-wrap" id="quickWrap">
+    </div>
+    </div><!-- /rh-main -->
+
+    <!-- Panel samping: kanan di web, mengalir di bawah pada HP -->
+    <aside class="rh-side">
+        <!-- 5. Kirim (web: kartu di atas panel; HP: menempel di bawah layar) -->
+        <div class="rh-sendbar" id="sendBar">
+            <div class="rh-sendbar-info">
+                <strong id="sendCount">0 pekerjaan</strong>
+                <span id="sendInfo">Belum dikirim</span>
+            </div>
+            <button type="button" class="btn btn-primary rh-send-btn" id="btnSend"><i class="bi bi-send-fill"></i><span>Kirim ke Spv</span></button>
+        </div>
+
+        <div class="card rh-side-card rh-quick-card" id="quickWrap">
             <div class="rh-quick-label"><i class="bi bi-lightning-charge"></i>Pekerjaan rutin, ketuk untuk menambah</div>
             <div class="rh-quick" id="quick"></div>
         </div>
-    </div>
 
-    <details class="rh-wa-details">
-        <summary><i class="bi bi-whatsapp me-1"></i>Lihat teks untuk WhatsApp</summary>
-        <pre class="rh-wa" id="waText"></pre>
-        <button class="btn btn-outline-secondary btn-sm" id="btnCopy"><i class="bi bi-clipboard me-1"></i>Salin teks</button>
-    </details>
-
-    <!-- 5. Kirim (selalu terlihat) -->
-    <div class="rh-sendbar" id="sendBar">
-        <div class="rh-sendbar-info">
-            <strong id="sendCount">0 pekerjaan</strong>
-            <span id="sendInfo">Belum dikirim</span>
-        </div>
-        <button type="button" class="btn btn-primary rh-send-btn" id="btnSend"><i class="bi bi-send-fill"></i><span>Kirim ke Spv</span></button>
-    </div>
+        <details class="card rh-side-card rh-wa-details">
+            <summary><i class="bi bi-whatsapp me-1"></i>Lihat teks untuk WhatsApp</summary>
+            <pre class="rh-wa" id="waText"></pre>
+            <button class="btn btn-outline-secondary btn-sm" id="btnCopy"><i class="bi bi-clipboard me-1"></i>Salin teks</button>
+        </details>
+    </aside>
 </div>
 
 <div class="modal fade" id="pasteModal" tabindex="-1" aria-labelledby="pasteTitle" aria-hidden="true">
