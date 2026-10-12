@@ -37,22 +37,47 @@ def dashboard():
     reports = {r.user_id: r for r in Report.query.filter(
         Report.date == d, Report.user_id.in_([u.id for u in users]))}
 
-    rows = [(u, reports.get(u.id)) for u in users]
-    sent = [r for r in reports.values() if r.state != STATE_DRAFT]
-    kpi = {
-        "staff": len(users),
-        "sent": len(sent),
-        "missing": len(users) - len(sent),
-        "checked": sum(1 for r in sent if r.state == STATE_CHECKED),
-    }
+    # Dikelompokkan menurut tindakan Spv: perlu dicek dulu, lalu lainnya.
+    groups = {"check": [], "revision": [], "checked": [], "missing": []}
+    for u in users:
+        r = reports.get(u.id)
+        if not r or r.state == STATE_DRAFT:
+            groups["missing"].append((u, None))
+        elif r.state == STATE_SENT:
+            groups["check"].append((u, r))
+        elif r.state == STATE_REVISION:
+            groups["revision"].append((u, r))
+        else:
+            groups["checked"].append((u, r))
+    sent = len(users) - len(groups["missing"])
 
-    # Report yang sudah dikirim tapi belum dicek, semua tanggal.
+    # Laporan hari lain yang masih menunggu dicek.
     pending = (Report.query.join(User, Report.user_id == User.id)
-               .filter(Report.state == STATE_SENT, User.active.is_(True), Report.source == "app")
-               .order_by(Report.date.desc()).limit(50).all())
+               .filter(Report.state == STATE_SENT, Report.date != d, User.active.is_(True),
+                       Report.source == "app")
+               .order_by(Report.date.desc()).limit(30).all())
 
-    return render_template("spv_dashboard.html", day=d, rows=rows, kpi=kpi, team=team,
-                           pending=pending)
+    return render_template("spv_dashboard.html", day=d, groups=groups, team=team,
+                           total=len(users), sent=sent, pending=pending, today=date.today())
+
+
+def _same_day(report):
+    """Laporan terkirim di tanggal yang sama, urut tim lalu nama."""
+    rows = (Report.query.join(User, Report.user_id == User.id)
+            .filter(Report.date == report.date, Report.state != STATE_DRAFT).all())
+    return sorted(rows, key=lambda r: (TEAMS.index(r.user.team) if r.user.team in TEAMS else 99,
+                                       r.user.name.lower()))
+
+
+def _next_to_check(report):
+    """Laporan berikutnya (tanggal sama) yang masih perlu dicek, atau None."""
+    rows = _same_day(report)
+    ids = [r.id for r in rows]
+    pos = ids.index(report.id) if report.id in ids else -1
+    for r in rows[pos + 1:] + rows[:max(pos, 0)]:
+        if r.id != report.id and r.state == STATE_SENT:
+            return r
+    return None
 
 
 @bp.route("/spv/report/<int:report_id>")
@@ -62,18 +87,15 @@ def detail(report_id):
     if report.state == STATE_DRAFT:
         abort(404)
 
-    # Navigasi ke report terkirim berikutnya di tanggal yang sama.
-    same_day = (Report.query.join(User, Report.user_id == User.id)
-                .filter(Report.date == report.date, Report.state != STATE_DRAFT)
-                .all())
-    same_day = sorted(same_day, key=lambda r: (TEAMS.index(r.user.team) if r.user.team in TEAMS else 99,
-                                               r.user.name.lower()))
-    ids = [r.id for r in same_day]
+    rows = _same_day(report)
+    ids = [r.id for r in rows]
     pos = ids.index(report.id) if report.id in ids else -1
     prev_id = ids[pos - 1] if pos > 0 else None
     next_id = ids[pos + 1] if 0 <= pos < len(ids) - 1 else None
+    remaining = sum(1 for r in rows if r.state == STATE_SENT and r.id != report.id)
 
     return render_template("spv_detail.html", report=report, prev_id=prev_id, next_id=next_id,
+                           position=pos + 1, total=len(rows), remaining=remaining,
                            wa=wa_text(report.user.name, report.date, report.day_status, report.items))
 
 
@@ -84,18 +106,19 @@ def review(report_id):
     action = request.form.get("action")
     note = request.form.get("note", "").strip()[:2000]
 
+    name = report.user.name
     if action == "check":
         report.state = STATE_CHECKED
-        flash(f"Report {report.user.name} ditandai sudah dicek.", "success")
+        message = (f"Laporan {name} sudah dicek.", "success")
     elif action == "revision":
         if not note:
-            flash("Tulis catatan perbaikan untuk staf.", "warning")
+            flash("Tulis dulu apa yang perlu diperbaiki.", "warning")
             return redirect(url_for("spv.detail", report_id=report.id))
         report.state = STATE_REVISION
-        flash(f"Report {report.user.name} dikembalikan untuk diperbaiki.", "warning")
+        message = (f"Laporan {name} dikembalikan untuk diperbaiki.", "warning")
     elif action == "reopen" and report.state == STATE_CHECKED:
         report.state = STATE_SENT
-        flash("Tanda sudah dicek dibatalkan.", "info")
+        message = ("Tanda sudah dicek dibatalkan.", "info")
     else:
         abort(400)
 
@@ -105,9 +128,16 @@ def review(report_id):
     report.edited_after_submit = False
     db.session.commit()
 
-    nxt = request.form.get("next_id", type=int)
-    if action == "check" and nxt:
-        return redirect(url_for("spv.detail", report_id=nxt))
+    # Setelah dicek / dikembalikan, langsung ke laporan berikutnya yang
+    # masih perlu dicek; kalau sudah habis, kembali ke daftar.
+    if action in ("check", "revision"):
+        nxt = _next_to_check(report)
+        if nxt:
+            flash(*message)
+            return redirect(url_for("spv.detail", report_id=nxt.id))
+        flash(message[0] + " Semua laporan di tanggal ini sudah diperiksa.", "success")
+        return redirect(url_for("spv.dashboard", tanggal=report.date.isoformat()))
+    flash(*message)
     return redirect(url_for("spv.detail", report_id=report.id))
 
 

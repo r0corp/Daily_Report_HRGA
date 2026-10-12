@@ -1,112 +1,132 @@
 {% extends "base.html" %}
-{% from "_macros.html" import state_badge %}
 {% block title %}Report Masuk{% endblock %}
 {% block heading %}Report Masuk{% endblock %}
-{% block heading_icon %}bi-speedometer2{% endblock %}
-{% block heading_subtitle %}{{ day|tanggal }}{% endblock %}
-{% block header_actions %}
-<a href="{{ url_for('spv.rekap') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i>Rekap & Export</a>
-{% endblock %}
+{% block heading_icon %}bi-inbox{% endblock %}
+{% block heading_subtitle %}Periksa laporan harian tim HRGA{% endblock %}
+
+{% macro person(u, r, cta=False) -%}
+<a class="rh-person{{ ' is-cta' if cta }}" href="{{ url_for('spv.detail', report_id=r.id) }}">
+    <span class="rh-avatar">{{ u.initials }}</span>
+    <span class="rh-person-main">
+        <strong>{{ u.name }}</strong>
+        <small>{{ u.team }} · {% if r.day_status and not r.items %}{{ r.day_status }}{% else %}{{ r.items|length }} pekerjaan{% endif %}{% if r.submitted_at %} · {{ r.submitted_at.strftime('%H:%M') }}{% endif %}</small>
+        {% if r.edited_after_submit %}<span class="rh-flag"><i class="bi bi-pencil-fill"></i>Diubah setelah dikirim</span>{% endif %}
+    </span>
+    {% if cta %}<span class="rh-person-cta">Periksa<i class="bi bi-chevron-right"></i></span>
+    {% else %}<i class="bi bi-chevron-right rh-person-arrow"></i>{% endif %}
+</a>
+{%- endmacro %}
+
 {% block content %}
-<div class="card mb-3">
-    <div class="card-body py-2">
-        <form class="row g-2 align-items-end" method="get">
-            <div class="col-6 col-md-3 col-xl-2">
-                <label class="form-label small mb-1" for="tanggal">Tanggal</label>
-                <input type="date" name="tanggal" id="tanggal" value="{{ day.isoformat() }}" class="form-control form-control-sm" onchange="this.form.submit()">
-            </div>
-            <div class="col-6 col-md-3 col-xl-2">
-                <label class="form-label small mb-1" for="tim">Tim</label>
-                <select name="tim" id="tim" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">Semua tim</option>
-                    {% for t in TEAMS if t != 'Supervisor' %}<option {{ 'selected' if team == t }}>{{ t }}</option>{% endfor %}
-                </select>
-            </div>
-            <div class="col-12 col-md-6 col-xl-8 d-flex gap-2 flex-wrap">
-                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('spv.dashboard', tanggal=(day - timedelta1).isoformat(), tim=team) }}"><i class="bi bi-chevron-left"></i> Sebelumnya</a>
-                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('spv.dashboard', tim=team) }}"><i class="bi bi-calendar-event me-1"></i>Hari ini</a>
-                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('spv.dashboard', tanggal=(day + timedelta1).isoformat(), tim=team) }}">Berikutnya <i class="bi bi-chevron-right"></i></a>
-            </div>
+<div class="rh-write">
+
+    <!-- Tanggal -->
+    <div class="card rh-datebar">
+        <a class="rh-nav" href="{{ url_for('spv.dashboard', tanggal=(day - timedelta1).isoformat(), tim=team) }}" aria-label="Hari sebelumnya"><i class="bi bi-chevron-left"></i></a>
+        <button type="button" class="rh-date-main" id="btnPickDate" aria-label="Pilih tanggal">
+            <span class="rh-date-label{{ ' is-past' if day != today }}">{{ 'Hari ini' if day == today else ('Kemarin' if (today - day).days == 1 else day|hari) }}</span>
+            <span class="rh-date-text">{{ day|tanggal }} <i class="bi bi-calendar3"></i></span>
+        </button>
+        {% if day < today %}
+        <a class="rh-nav" href="{{ url_for('spv.dashboard', tanggal=(day + timedelta1).isoformat(), tim=team) }}" aria-label="Hari berikutnya"><i class="bi bi-chevron-right"></i></a>
+        {% else %}
+        <span class="rh-nav is-disabled" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+        {% endif %}
+        <form method="get" id="dateForm">
+            <input type="hidden" name="tim" value="{{ team }}">
+            <input type="text" name="tanggal" id="fDate" value="{{ day.isoformat() }}" class="rh-date-input" data-no-picker tabindex="-1" aria-hidden="true">
         </form>
     </div>
-</div>
 
-{% set kpis = [
-    ('Staf aktif', kpi.staff, 'bi-people', 'info'),
-    ('Sudah kirim', kpi.sent, 'bi-send-check', 'primary'),
-    ('Belum kirim', kpi.missing, 'bi-hourglass-split', 'danger'),
-    ('Sudah dicek', kpi.checked, 'bi-check2-all', 'success'),
-] %}
-<div class="row g-3 mb-3">
-    {% for label, value, icon, color in kpis %}
-    <div class="col-6 col-xl-3">
-        <div class="card dashboard-kpi-card">
-            <div class="card-body">
-                <div>
-                    <div class="dashboard-kpi-label">{{ label }}</div>
-                    <div class="dashboard-kpi-value tabular">{{ value }}</div>
-                </div>
-                <div class="dashboard-kpi-icon dashboard-kpi-icon-{{ color }}"><i class="bi {{ icon }}"></i></div>
-            </div>
+    <!-- Tim -->
+    <div class="rh-scroll-chips" role="tablist" aria-label="Filter tim">
+        <a class="rh-chip{{ ' is-on' if not team }}" href="{{ url_for('spv.dashboard', tanggal=day.isoformat()) }}">Semua</a>
+        {% for t in TEAMS if t != 'Supervisor' %}
+        <a class="rh-chip{{ ' is-on' if team == t }}" href="{{ url_for('spv.dashboard', tanggal=day.isoformat(), tim=t) }}">{{ t }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Progres -->
+    <div class="card rh-progress-card">
+        <div class="rh-progress-head">
+            <div><strong class="tabular">{{ sent }} dari {{ total }}</strong> staf sudah kirim laporan</div>
+            {% if total %}<span class="rh-progress-pct tabular">{{ (sent / total * 100)|round|int }}%</span>{% endif %}
+        </div>
+        <div class="rh-progress"><i style="width: {{ (sent / total * 100) if total else 0 }}%"></i></div>
+        <div class="rh-progress-stats">
+            <span><b class="tabular">{{ groups.check|length }}</b> perlu dicek</span>
+            <span><b class="tabular">{{ groups.checked|length }}</b> sudah dicek</span>
+            <span><b class="tabular">{{ groups.missing|length }}</b> belum kirim</span>
         </div>
     </div>
-    {% endfor %}
-</div>
 
-<div class="row g-3">
-    <div class="{{ 'col-xl-8' if pending else 'col-12' }}">
-        <div class="card overflow-hidden">
-            <div class="card-header-accent">
-                <div class="card-header-accent-left">
-                    <div class="card-header-accent-icon"><i class="bi bi-people"></i></div>
-                    <div>
-                        <div class="card-header-accent-title">Report per staf</div>
-                        <div class="card-header-accent-subtitle">{{ kpi.sent }} dari {{ kpi.staff }} staf sudah mengirim</div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead><tr><th class="ps-3">Nama</th><th>Tim</th><th class="text-end">Pekerjaan</th><th>Dikirim</th><th>Status</th><th class="pe-3"></th></tr></thead>
-                        <tbody>
-                        {% for u, r in rows %}
-                        {% set sent = r and r.state != 'draft' %}
-                        <tr class="{{ 'rh-day-row' if sent }}" {% if sent %}onclick="location.href='{{ url_for('spv.detail', report_id=r.id) }}'"{% endif %}>
-                            <td class="ps-3 fw-semibold text-nowrap">{{ u.name }}</td>
-                            <td class="text-nowrap"><span class="text-secondary">{{ u.team }}</span></td>
-                            <td class="text-end tabular">{% if sent %}{{ r.items|length }}{% if r.day_status %} <span class="rh-badge rh-badge-rutin">{{ r.day_status }}</span>{% endif %}{% else %}–{% endif %}</td>
-                            <td class="small text-secondary">{{ r.submitted_at.strftime('%H:%M') if sent and r.submitted_at else '' }}{{ ' (' ~ r.submitted_at.strftime('%d-%m') ~ ')' if sent and r.submitted_at and r.submitted_at.date() != day }}</td>
-                            <td>{% if sent %}{{ state_badge(r) }}{% else %}<span class="badge text-bg-light border text-secondary"><i class="bi bi-hourglass me-1"></i>Belum kirim</span>{% endif %}</td>
-                            <td class="pe-3 text-end">{% if sent %}<a href="{{ url_for('spv.detail', report_id=r.id) }}" class="btn btn-sm btn-outline-primary">Lihat</a>{% endif %}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="6" class="text-center text-secondary py-4">Belum ada staf. Tambahkan lewat menu User.</td></tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- Perlu dicek -->
+    <section class="rh-group">
+        <h3 class="rh-group-title"><i class="bi bi-hourglass-split"></i>Perlu dicek <span class="rh-count">{{ groups.check|length }}</span></h3>
+        {% if groups.check %}
+        <div class="rh-person-list">
+            {% for u, r in groups.check %}{{ person(u, r, cta=True) }}{% endfor %}
         </div>
-    </div>
+        {% else %}
+        <div class="rh-empty"><i class="bi bi-check2-circle"></i>{{ 'Semua laporan yang masuk sudah dicek.' if sent else 'Belum ada laporan yang masuk.' }}</div>
+        {% endif %}
+    </section>
+
+    {% if groups.revision %}
+    <section class="rh-group">
+        <h3 class="rh-group-title"><i class="bi bi-arrow-counterclockwise"></i>Menunggu perbaikan staf <span class="rh-count">{{ groups.revision|length }}</span></h3>
+        <div class="rh-person-list">
+            {% for u, r in groups.revision %}{{ person(u, r) }}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if groups.missing %}
+    <section class="rh-group">
+        <h3 class="rh-group-title"><i class="bi bi-person-dash"></i>Belum kirim <span class="rh-count">{{ groups.missing|length }}</span></h3>
+        <div class="rh-name-chips">
+            {% for u, r in groups.missing %}
+            <span class="rh-name-chip"><span class="rh-avatar rh-avatar-sm">{{ u.initials }}</span>{{ u.name }}<small>{{ u.team }}</small></span>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if groups.checked %}
+    <section class="rh-group">
+        <h3 class="rh-group-title"><i class="bi bi-check2-all"></i>Sudah dicek <span class="rh-count">{{ groups.checked|length }}</span></h3>
+        <div class="rh-person-list is-muted">
+            {% for u, r in groups.checked %}{{ person(u, r) }}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
     {% if pending %}
-    <div class="col-xl-4">
-        <div class="card">
-            <div class="card-header"><i class="bi bi-inbox me-2"></i>Menunggu dicek ({{ pending|length }})</div>
-            <div class="list-group list-group-flush">
-                {% for r in pending %}
-                <a href="{{ url_for('spv.detail', report_id=r.id) }}" class="list-group-item list-group-item-action">
-                    <div class="d-flex justify-content-between gap-2">
-                        <span class="fw-semibold">{{ r.user.name }}</span>
-                        <span class="small text-secondary text-nowrap">{{ r.date.strftime('%d-%m-%Y') }}</span>
-                    </div>
-                    <div class="small text-secondary">{{ r.user.team }} · {{ r.items|length }} pekerjaan{{ ' · diubah' if r.edited_after_submit }}</div>
-                </a>
-                {% endfor %}
-            </div>
+    <details class="rh-group rh-other-days">
+        <summary class="rh-group-title"><i class="bi bi-calendar2-week"></i>Belum dicek dari hari lain <span class="rh-count">{{ pending|length }}</span></summary>
+        <div class="rh-person-list">
+            {% for r in pending %}
+            <a class="rh-person" href="{{ url_for('spv.detail', report_id=r.id) }}">
+                <span class="rh-avatar">{{ r.user.initials }}</span>
+                <span class="rh-person-main"><strong>{{ r.user.name }}</strong><small>{{ r.date|tanggal }} · {{ r.items|length }} pekerjaan</small></span>
+                <i class="bi bi-chevron-right rh-person-arrow"></i>
+            </a>
+            {% endfor %}
         </div>
-    </div>
+    </details>
     {% endif %}
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+    const input = document.getElementById("fDate");
+    const fp = flatpickr(input, {
+        dateFormat: "Y-m-d", disableMobile: true, clickOpens: false, maxDate: "{{ today.isoformat() }}",
+        positionElement: document.getElementById("btnPickDate"),
+        onChange: (sel, str) => { if (str) document.getElementById("dateForm").submit(); },
+    });
+    document.getElementById("btnPickDate").addEventListener("click", () => fp.open());
+})();
+</script>
 {% endblock %}

@@ -54,7 +54,8 @@ class User(UserMixin, db.Model):
 
     @property
     def initials(self):
-        parts = self.name.split()
+        # Hanya kata yang diawali huruf ("Budi (uji)" -> "B", bukan "B(").
+        parts = [p for p in self.name.split() if p[:1].isalpha()]
         return ((parts[0][0] + (parts[-1][0] if len(parts) > 1 else "")) if parts else "U").upper()
 
 

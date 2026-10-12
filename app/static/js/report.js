@@ -250,6 +250,7 @@ async function send() {
         renderState();
         setSaveState("Terkirim ke Spv");
         window.scrollTo({ top: 0, behavior: "smooth" });
+        if (window.rhNotify) window.rhNotify.notify({ type: "sent", title: "Laporan terkirim", text: "Spv akan memeriksa laporan Anda." });
     } catch (e) {
         renderState();
         $("stateBox").innerHTML = `<div class="rh-notice rh-notice-warn"><i class="bi bi-exclamation-triangle"></i><div><strong>Belum terkirim</strong><p>${esc(e.message)}</p></div></div>`;

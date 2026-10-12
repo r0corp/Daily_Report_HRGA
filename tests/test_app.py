@@ -159,3 +159,29 @@ def test_pages_render(app):
                 "/rekap/export.xlsx", "/spv/report/1"]:
         assert admin.get(url).status_code == 200, url
     assert app.test_client().get("/login").status_code == 200
+
+
+def test_notifications_for_spv_and_staff(app):
+    import time
+    staff = app.test_client()
+    login(app, staff, "Budi", "1234")
+    spv = app.test_client()
+    login(app, spv, "Spv HRGA", "spv-password")
+
+    # Panggilan pertama hanya memberi waktu server (tanpa kejadian lama).
+    first = spv.get("/api/notif").json
+    assert first["events"] == []
+    staff_since = staff.get("/api/notif").json["now"]
+    time.sleep(1.1)
+
+    today = date.today().isoformat()
+    staff.put(f"/api/report/{today}", json={"items": [{"text": "Cleaning lobby", "cat": "Kebersihan Ruangan"}]})
+    staff.post(f"/api/report/{today}/send")
+    ev = spv.get(f"/api/notif?since={first['now']}").json["events"]
+    assert [e["type"] for e in ev] == ["incoming"] and "Budi" in ev[0]["title"]
+
+    with app.app_context():
+        report_id = Report.query.one().id
+    spv.post(f"/spv/report/{report_id}/review", data={"action": "revision", "note": "Tambah detail"})
+    ev = staff.get(f"/api/notif?since={staff_since}").json["events"]
+    assert ev[0]["type"] == "revision" and "Tambah detail" in ev[0]["text"]

@@ -17,6 +17,45 @@ MAX_ITEMS = 60
 MAX_TEXT = 3000
 
 
+@bp.route("/api/notif")
+@login_required
+def api_notif():
+    """Kejadian baru sejak `since` (waktu server dari respons sebelumnya),
+    dipakai static/js/notify.js untuk bunyi + pop-up. Panggilan pertama
+    (tanpa since) hanya mengembalikan waktu server, tanpa kejadian lama."""
+    from flask import url_for
+    from ..models import User
+
+    now = datetime.now()
+    since = None
+    try:
+        since = datetime.fromisoformat(request.args.get("since", ""))
+    except ValueError:
+        pass
+    events = []
+    if since:
+        # Laporan saya yang baru diperiksa Spv.
+        for r in (Report.query.filter(Report.user_id == current_user.id, Report.reviewed_at > since,
+                                      Report.state.in_([STATE_CHECKED, STATE_REVISION]))
+                  .order_by(Report.reviewed_at).limit(5)):
+            if r.state == STATE_CHECKED:
+                events.append({"type": "checked", "title": "Laporan sudah dicek Spv",
+                               "text": format_date(r.date), "url": url_for("report.write", tanggal=r.date.isoformat())})
+            else:
+                events.append({"type": "revision", "title": "Spv minta perbaikan",
+                               "text": (r.spv_note or "")[:120], "url": url_for("report.write", tanggal=r.date.isoformat())})
+        # Spv: laporan baru masuk dari staf.
+        if current_user.is_spv:
+            for r in (Report.query.join(User, Report.user_id == User.id)
+                      .filter(Report.submitted_at > since, Report.state == STATE_SENT,
+                              Report.user_id != current_user.id, Report.source == "app")
+                      .order_by(Report.submitted_at).limit(10)):
+                events.append({"type": "incoming", "title": f"Laporan baru dari {r.user.name}",
+                               "text": f"{r.user.team} · {len(r.items)} pekerjaan",
+                               "url": url_for("spv.detail", report_id=r.id)})
+    return jsonify({"now": now.isoformat(timespec="seconds"), "events": events})
+
+
 def _report_json(report, report_date):
     if not report:
         return {"date": report_date.isoformat(), "day_status": "", "items": [],
