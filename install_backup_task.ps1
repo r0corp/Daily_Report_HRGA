@@ -2,7 +2,7 @@
 # Default tujuan: folder backups\ di dalam folder aplikasi. Aman dijalankan ulang.
 #
 # Jalankan, PowerShell "Run as Administrator":
-#   Set-Location C:\Users\TCI-PC-010\daily-report-hrga
+#   Set-Location C:\Users\TCI-PC-010\Daily_Report_HRGA
 #   powershell -ExecutionPolicy Bypass -File .\install_backup_task.ps1
 #
 # Tujuan lain (mis. drive lain): tambahkan -Dest "D:\Backup\DailyReportHRGA"

@@ -2,7 +2,7 @@
 # Aman dijalankan ulang: langkah yang sudah beres akan dilewati.
 #
 # Jalankan di PC server, PowerShell "Run as Administrator":
-#   Set-Location C:\Users\TCI-PC-010\daily-report-hrga
+#   Set-Location C:\Users\TCI-PC-010\Daily_Report_HRGA
 #   powershell -ExecutionPolicy Bypass -File .\setup_server.ps1
 
 param(

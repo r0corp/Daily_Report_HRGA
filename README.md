@@ -36,10 +36,10 @@ Report yang diubah setelah dikirim ditandai "diubah" di dashboard Spv.
 
 1. Di laptop dev: `powershell -ExecutionPolicy Bypass -File .\package_server.ps1 -WithArchive`
    (`-WithArchive` ikut membawa arsip Sticky Notes milik Rohman).
-2. Copy `dist\DailyReportHRGA-server.zip` ke server, extract ke `C:\Users\TCI-PC-010\daily-report-hrga`.
+2. Copy `dist\DailyReportHRGA-server.zip` ke server, extract ke `C:\Users\TCI-PC-010\Daily_Report_HRGA`.
 3. PowerShell **Run as Administrator** di server:
    ```
-   Set-Location C:\Users\TCI-PC-010\daily-report-hrga
+   Set-Location C:\Users\TCI-PC-010\Daily_Report_HRGA
    powershell -ExecutionPolicy Bypass -File .\setup_server.ps1
    ```
    Catat password admin yang tampil sekali di layar.

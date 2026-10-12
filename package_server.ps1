@@ -1,5 +1,5 @@
 # Buat paket untuk dicopy ke PC server:
-#   dist\DailyReportHRGA-server.zip -> extract ke C:\Users\TCI-PC-010\daily-report-hrga
+#   dist\DailyReportHRGA-server.zip -> extract ke C:\Users\TCI-PC-010\Daily_Report_HRGA
 #
 # Jalankan: powershell -ExecutionPolicy Bypass -File .\package_server.ps1
 #   -WithArchive  ikut sertakan data\archive.json (arsip Sticky Notes) untuk
