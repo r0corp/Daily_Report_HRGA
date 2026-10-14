@@ -68,3 +68,23 @@ venv\Scripts\python.exe -m pytest -q
 Kategori & pekerjaan rutin bawaan per tim ada di `app/constants.py`; setelah diubah dari menu
 **Kategori & Rutin**, nilai di database yang dipakai. Kategori otomatis tim IT ada di
 `app/static/js/report.js`.
+
+## APK Android (WebView)
+
+Web sudah disiapkan untuk dibungkus WebView: semua CSS/JS/font ada di `app/static/vendor`
+(tidak butuh internet/CDN), layout mobile-first, `viewport-fit=cover` + safe-area, dan tombol
+salin punya cadangan untuk `http`. Di project APK wajib:
+
+- `android:usesCleartextTraffic="true"` atau network security config untuk `192.168.120.229`
+  (server masih `http`; tanpa ini halaman putih).
+- `settings.javaScriptEnabled = true`, `settings.domStorageEnabled = true`
+  (nama terakhir login, draft, tema disimpan di localStorage).
+- `settings.mediaPlaybackRequiresUserGesture = false` supaya bunyi notifikasi bisa main.
+- Izin `android.permission.VIBRATE` untuk getar notifikasi.
+- Tombol Back -> `if (webView.canGoBack()) webView.goBack()`.
+- `setDownloadListener` (atau buka di browser) untuk **Export Excel** di menu Rekap.
+- Alamat server sebaiknya bisa diubah di pengaturan APK, jangan ditanam permanen.
+
+Batasan: hanya jalan di jaringan kantor (server 192.168.x.x); notifikasi hanya saat aplikasi
+terbuka (polling `/api/notif` tiap 30 detik) - untuk notifikasi saat aplikasi tertutup perlu
+push notification (mis. Firebase Cloud Messaging); PIN masih lewat `http`.
