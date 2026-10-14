@@ -2073,3 +2073,176 @@ summary.rh-group-title::-webkit-details-marker {
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.3);
 }
+
+/* ---------- Catatan draft (sticky notes) ---------- */
+
+.rh-notes-card {
+    padding: 14px 16px 16px;
+}
+
+.rh-notes-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.rh-notes-head strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+}
+
+.rh-notes-head strong > i {
+    color: var(--rh-accent);
+}
+
+.rh-notes-head small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+}
+
+.rh-notes-add {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 34px;
+    white-space: nowrap;
+}
+
+.rh-notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.rh-notes:empty {
+    display: none;
+}
+
+.rh-notes-empty {
+    padding: 14px;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: 12px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--bs-secondary-color);
+}
+
+.rh-note {
+    --note-bg: #fef9c3;
+    --note-line: #fde68a;
+    --note-ink: #713f12;
+    display: flex;
+    flex-direction: column;
+    min-height: 120px;
+    padding: 10px 10px 6px;
+    border-radius: 4px 4px 14px 4px;
+    border: 1px solid var(--note-line);
+    border-top-width: 4px;
+    background: var(--note-bg);
+    color: var(--note-ink);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.rh-note.is-orange { --note-bg: #ffedd5; --note-line: #fdba74; --note-ink: #7c2d12; }
+.rh-note.is-pink   { --note-bg: #fce7f3; --note-line: #f9a8d4; --note-ink: #831843; }
+.rh-note.is-blue   { --note-bg: #dbeafe; --note-line: #93c5fd; --note-ink: #1e3a8a; }
+.rh-note.is-green  { --note-bg: #dcfce7; --note-line: #86efac; --note-ink: #14532d; }
+
+.rh-note-text {
+    flex: 1;
+    width: 100%;
+    min-height: 64px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    resize: none;
+    overflow: hidden;
+    background: transparent;
+    color: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.rh-note-text::placeholder {
+    color: inherit;
+    opacity: 0.55;
+}
+
+.rh-note-foot {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 6px;
+}
+
+.rh-note-foot small {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 11px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    opacity: 0.7;
+}
+
+.rh-note-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    opacity: 0.75;
+}
+
+.rh-note-btn:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.rh-note-btn.rh-note-use {
+    color: #fff;
+    background: var(--rh-accent);
+    opacity: 1;
+}
+
+.rh-note-btn.rh-note-use:hover {
+    background: #c2410c;
+}
+
+[data-bs-theme="dark"] .rh-note {
+    --note-bg: rgba(250, 204, 21, 0.13);
+    --note-line: rgba(250, 204, 21, 0.4);
+    --note-ink: #fde68a;
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .rh-note.is-orange { --note-bg: rgba(249, 115, 22, 0.14); --note-line: rgba(249, 115, 22, 0.45); --note-ink: #fdba74; }
+[data-bs-theme="dark"] .rh-note.is-pink   { --note-bg: rgba(236, 72, 153, 0.14); --note-line: rgba(236, 72, 153, 0.45); --note-ink: #f9a8d4; }
+[data-bs-theme="dark"] .rh-note.is-blue   { --note-bg: rgba(59, 130, 246, 0.14); --note-line: rgba(59, 130, 246, 0.45); --note-ink: #93c5fd; }
+[data-bs-theme="dark"] .rh-note.is-green  { --note-bg: rgba(34, 197, 94, 0.13); --note-line: rgba(34, 197, 94, 0.4); --note-ink: #86efac; }
+
+[data-bs-theme="dark"] .rh-note-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Web: panel samping menempel, jadi catatan yang banyak digulir sendiri. */
+@media (min-width: 1200px) {
+    .rh-notes {
+        max-height: 46vh;
+        overflow-y: auto;
+        padding-right: 2px;
+        scrollbar-width: thin;
+    }
+}

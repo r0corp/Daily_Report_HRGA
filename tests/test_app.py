@@ -326,3 +326,23 @@ def test_pending_days_and_late_flag(app):
     staff.post(f"/api/report/{today.isoformat()}/send")
     with app.app_context():
         assert Report.query.filter_by(date=today).one().late_days == 0
+
+
+def test_notes_private_crud(app):
+    budi = app.test_client()
+    login(app, budi, "Budi", "1234")
+    n = budi.post("/api/notes", json={"text": "Mungkin pindahkan meja lantai 2", "color": "pink"}).json
+    assert n["color"] == "pink"
+    assert budi.put(f"/api/notes/{n['id']}", json={"text": "Pindah meja", "color": "nope"}).json == {
+        **n, "text": "Pindah meja"}
+    assert [x["text"] for x in budi.get("/api/notes").json["notes"]] == ["Pindah meja"]
+
+    # Catatan orang lain tidak bisa dilihat / diubah / dihapus.
+    andi = app.test_client()
+    login(app, andi, "Andi", "5678")
+    assert andi.get("/api/notes").json["notes"] == []
+    assert andi.put(f"/api/notes/{n['id']}", json={"text": "x"}).status_code == 404
+    assert andi.delete(f"/api/notes/{n['id']}").status_code == 404
+
+    assert budi.delete(f"/api/notes/{n['id']}").json["ok"]
+    assert budi.get("/api/notes").json["notes"] == []

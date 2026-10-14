@@ -91,6 +91,19 @@
             <button type="button" class="btn btn-primary rh-send-btn" id="btnSend"><i class="bi bi-send-fill"></i><span>{{ _('Kirim ke Spv') }}</span></button>
         </div>
 
+        <!-- Catatan draft (sticky notes): pribadi, tidak dikirim ke Spv -->
+        <div class="card rh-side-card rh-notes-card">
+            <div class="rh-notes-head">
+                <div>
+                    <strong><i class="bi bi-sticky"></i>{{ _('Catatan draft') }} <span class="rh-count" id="notesCount" hidden></span></strong>
+                    <small>{{ _('Pekerjaan dadakan yang belum pasti. Tidak dikirim ke Spv.') }}</small>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm rh-notes-add" id="btnNoteAdd"><i class="bi bi-plus-lg"></i>{{ _('Catatan') }}</button>
+            </div>
+            <div class="rh-notes" id="notes"></div>
+            <div class="rh-notes-empty" id="notesEmpty" hidden>{{ _('Belum ada catatan. Tekan + Catatan untuk mencatat pekerjaan yang mungkin dikerjakan.') }}</div>
+        </div>
+
         <div class="card rh-side-card rh-quick-card" id="quickWrap">
             <div class="rh-quick-label"><i class="bi bi-lightning-charge"></i>{{ _('Pekerjaan rutin, ketuk untuk menambah') }}</div>
             <div class="rh-quick" id="quick"></div>
@@ -142,4 +155,5 @@
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/notes.js') }}"></script>
 {% endblock %}

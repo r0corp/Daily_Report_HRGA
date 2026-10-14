@@ -127,6 +127,25 @@ class Report(db.Model):
         return max(0, (self.first_submitted_at.date() - self.date).days)
 
 
+class Note(db.Model):
+    """Catatan draft (sticky note) pribadi: pekerjaan dadakan yang belum
+    pasti. Tidak terikat tanggal dan tidak terlihat oleh Spv."""
+    __tablename__ = "note"
+
+    COLORS = ("yellow", "orange", "pink", "blue", "green")
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    text = db.Column(db.Text, nullable=False, default="")
+    color = db.Column(db.String(20), nullable=False, default="yellow")
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    def to_json(self):
+        return {"id": self.id, "text": self.text, "color": self.color,
+                "created_at": self.created_at.isoformat(timespec="seconds")}
+
+
 class Setting(db.Model):
     __tablename__ = "setting"
 

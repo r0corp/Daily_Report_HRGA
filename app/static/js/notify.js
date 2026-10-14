@@ -45,7 +45,7 @@
         if (navigator.vibrate) navigator.vibrate(kind === "revision" ? [80, 60, 80] : 60);
     }
 
-    const ICONS = { sent: "bi-send-check", incoming: "bi-inbox", checked: "bi-check2-all", revision: "bi-arrow-counterclockwise" };
+    const ICONS = { note: "bi-sticky", sent: "bi-send-check", incoming: "bi-inbox", checked: "bi-check2-all", revision: "bi-arrow-counterclockwise" };
     let box = null;
     function toast({ type, title, text, url }) {
         if (!box) {

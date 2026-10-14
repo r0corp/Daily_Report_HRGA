@@ -341,6 +341,25 @@ EN = {
     "API key DeepL ditolak. Cek DEEPL_API_KEY di file .env server.": "DeepL rejected the API key. Check DEEPL_API_KEY in the server's .env file.",
     "Kuota DeepL bulan ini sudah habis.": "This month's DeepL quota is used up.",
     "DeepL sedang sibuk, coba lagi sebentar.": "DeepL is busy, try again shortly.",
+    # ---------------------------------------------------------- catatan draft
+    "Catatan draft": "Draft notes",
+    "Catatan": "Note",
+    "Pekerjaan dadakan yang belum pasti. Tidak dikirim ke Spv.": "Ad-hoc work that is not certain yet. Not sent to Spv.",
+    "Belum ada catatan. Tekan + Catatan untuk mencatat pekerjaan yang mungkin dikerjakan.": "No notes yet. Press + Note to jot down work that might happen.",
+    "Catatan sudah {n}. Hapus yang tidak dipakai dulu.": "You already have {n} notes. Delete unused ones first.",
+    "Tulis catatan…": "Write a note…",
+    "Jadikan pekerjaan": "Move to work list",
+    "Ganti warna": "Change color",
+    "Hapus catatan": "Delete note",
+    "Hapus catatan ini?": "Delete this note?",
+    "Dipindah ke pekerjaan": "Moved to work list",
+    "Masuk ke report {d}": "Added to the {d} report",
+    "Report tanggal ini sudah dicek Spv": "This date's report was already checked by Spv",
+    "Catatan masih kosong": "The note is empty",
+    "Gagal menyimpan catatan": "Could not save the note",
+    "Baru saja": "Just now",
+    "{n} menit lalu": "{n} minutes ago",
+    "{n} jam lalu": "{n} hours ago",
     # ---------------------------------------------------------- susulan
     "Belum dikirim ke Spv": "Not sent to Spv yet",
     "Ketuk tanggal untuk mengisi": "Tap a date to fill it in",
@@ -355,6 +374,8 @@ EN = {
 
 # Bentuk tunggal English, dipakai kalau n == 1 ("1 item", bukan "1 items").
 EN_ONE = {
+    "{n} menit lalu": "{n} minute ago",
+    "{n} jam lalu": "{n} hour ago",
     "Pertama dikirim {t}, {n} hari setelah tanggal laporan.": "First sent {t}, {n} day after the report date.",
     "{n} pekerjaan": "{n} item",
     "{n} hari lalu": "{n} day ago",

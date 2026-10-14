@@ -505,6 +505,12 @@ function addItem(text = "", rutin = false) {
     else { const ta = $("it-" + (cur.items.length - 1)); if (ta) ta.focus(); }
 }
 $("btnAdd").onclick = () => addItem();
+// Dipakai notes.js: catatan draft -> pekerjaan di tanggal yang sedang dibuka.
+window.rhReport = {
+    canAdd: () => !!(cur && cur.editable),
+    date: () => cur && cur.date,
+    addItem: text => { addItem(text); return true; },
+};
 
 function renderQuick() {
     $("quick").innerHTML = P.quick.map((q, i) =>

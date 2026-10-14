@@ -9,7 +9,7 @@ from ..constants import (
 )
 from ..i18n import _, js_strings
 from ..helpers import format_date, parse_date, parse_month, wa_text
-from ..models import Report, team_categories, team_quick
+from ..models import Note, Report, team_categories, team_quick
 
 
 bp = Blueprint("report", __name__)
@@ -285,6 +285,63 @@ def api_wa(day):
     report = _own_report(d)
     return jsonify({"text": wa_text(current_user.name, d, report.day_status if report else "",
                                     report.items if report else [])})
+
+
+# ------------------------------------------------------------ catatan draft
+
+MAX_NOTES = 40
+MAX_NOTE_TEXT = 2000
+
+
+def _note_or_404(note_id):
+    note = db.session.get(Note, note_id)
+    if not note or note.user_id != current_user.id:
+        abort(404)
+    return note
+
+
+def _note_fields(note, body):
+    if "text" in body:
+        note.text = str(body.get("text") or "")[:MAX_NOTE_TEXT]
+    if body.get("color") in Note.COLORS:
+        note.color = body["color"]
+
+
+@bp.route("/api/notes")
+@login_required
+def notes_list():
+    rows = Note.query.filter_by(user_id=current_user.id).order_by(Note.created_at.desc(), Note.id.desc())
+    return jsonify({"notes": [n.to_json() for n in rows]})
+
+
+@bp.route("/api/notes", methods=["POST"])
+@login_required
+def notes_create():
+    if Note.query.filter_by(user_id=current_user.id).count() >= MAX_NOTES:
+        return jsonify({"error": _("Catatan sudah {n}. Hapus yang tidak dipakai dulu.", n=MAX_NOTES)}), 400
+    note = Note(user_id=current_user.id)
+    _note_fields(note, request.get_json(silent=True) or {})
+    db.session.add(note)
+    db.session.commit()
+    return jsonify(note.to_json())
+
+
+@bp.route("/api/notes/<int:note_id>", methods=["PUT"])
+@login_required
+def notes_update(note_id):
+    note = _note_or_404(note_id)
+    _note_fields(note, request.get_json(silent=True) or {})
+    note.updated_at = datetime.now()
+    db.session.commit()
+    return jsonify(note.to_json())
+
+
+@bp.route("/api/notes/<int:note_id>", methods=["DELETE"])
+@login_required
+def notes_delete(note_id):
+    db.session.delete(_note_or_404(note_id))
+    db.session.commit()
+    return jsonify({"ok": True})
 
 
 @bp.route("/riwayat")
