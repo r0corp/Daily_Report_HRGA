@@ -30,6 +30,9 @@
         <span class="badge rh-state rh-state-{{ report.state }}"><i class="bi {{ icons.get(report.state, 'bi-circle') }} me-1"></i>{{ report.state_label }}</span>
     </div>
 
+    {% if report.late_days %}
+    <div class="rh-notice rh-notice-late"><i class="bi bi-clock-history"></i><div><strong>{{ _('Laporan susulan') }}</strong><p>{{ _('Pertama dikirim {t}, {n} hari setelah tanggal laporan.', t=report.first_submitted_at|tanggal(False) ~ ' ' ~ report.first_submitted_at.strftime('%H:%M'), n=report.late_days) }}</p></div></div>
+    {% endif %}
     {% if report.edited_after_submit %}
     <div class="rh-notice rh-notice-sent"><i class="bi bi-pencil"></i><div><strong>{{ _('Diubah setelah dikirim') }}</strong><p>{{ _('Staf mengubah isi laporan ini setelah mengirimnya.') }}</p></div></div>
     {% endif %}

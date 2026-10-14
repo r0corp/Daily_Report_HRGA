@@ -78,8 +78,21 @@ def create_app(config_object="config.Config"):
 
     with app.app_context():
         db.create_all()
+        _upgrade_db()
 
     return app
+
+
+def _upgrade_db():
+    """Kolom baru untuk database yang sudah ada (create_all tidak mengubah tabel)."""
+    from sqlalchemy import inspect, text
+
+    cols = {c["name"] for c in inspect(db.engine).get_columns("report")}
+    if "first_submitted_at" not in cols:
+        with db.engine.begin() as con:
+            con.execute(text("ALTER TABLE report ADD COLUMN first_submitted_at DATETIME"))
+            con.execute(text("UPDATE report SET first_submitted_at = submitted_at "
+                             "WHERE submitted_at IS NOT NULL"))
 
 
 @login_manager.user_loader

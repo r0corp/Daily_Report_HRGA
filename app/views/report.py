@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from flask import Blueprint, abort, jsonify, render_template, request
 from flask_login import current_user, login_required
@@ -51,8 +51,11 @@ def api_notif():
                       .filter(Report.submitted_at > since, Report.state == STATE_SENT,
                               Report.user_id != current_user.id, Report.source == "app")
                       .order_by(Report.submitted_at).limit(10)):
+                text = _("{team} · {n} pekerjaan", team=_(r.user.team), n=len(r.items))
+                if r.late_days:
+                    text += " · " + _("Susulan {d}", d=format_date(r.date, False))
                 events.append({"type": "incoming", "title": _("Laporan baru dari {name}", name=r.user.name),
-                               "text": _("{team} · {n} pekerjaan", team=_(r.user.team), n=len(r.items)),
+                               "text": text,
                                "url": url_for("spv.detail", report_id=r.id)})
     return jsonify({"now": now.isoformat(timespec="seconds"), "events": events})
 
@@ -106,6 +109,30 @@ def _clean_items(raw):
 
 def _own_report(d):
     return Report.query.filter_by(user_id=current_user.id, date=d).first()
+
+
+PENDING_LOOKBACK = 14
+
+
+def pending_days(user, today=None):
+    """Hari kerja (Senin-Jumat) dalam 14 hari terakhir yang laporannya belum
+    terkirim: belum diisi, masih draf, atau diminta perbaikan. Hari ini tidak
+    dihitung; hari sebelum akun dibuat juga tidak."""
+    today = today or date.today()
+    start = max(today - timedelta(days=PENDING_LOOKBACK), user.created_at.date())
+    rows = {r.date: r for r in Report.query.filter(
+        Report.user_id == user.id, Report.date >= start, Report.date < today)}
+    out = []
+    d = start
+    while d < today:
+        if d.weekday() < 5:
+            r = rows.get(d)
+            kind = ("empty" if not r else "draft" if r.state == STATE_DRAFT
+                    else "revision" if r.state == STATE_REVISION else None)
+            if kind:
+                out.append({"date": d.isoformat(), "kind": kind})
+        d += timedelta(days=1)
+    return out
 
 
 @bp.route("/tulis")
@@ -187,6 +214,7 @@ def api_get(day):
     data["previous_items"] = prev.items if prev else []
     data["previous_date"] = prev.date.strftime("%d-%m") if prev else None
     data["title"] = format_date(d)
+    data["pending"] = pending_days(current_user)
     return jsonify(data)
 
 
@@ -242,9 +270,12 @@ def api_send(day):
 
     report.state = STATE_SENT
     report.submitted_at = datetime.now()
+    report.first_submitted_at = report.first_submitted_at or report.submitted_at
     report.edited_after_submit = False
     db.session.commit()
-    return jsonify(_report_json(report, d))
+    data = _report_json(report, d)
+    data["pending"] = pending_days(current_user)
+    return jsonify(data)
 
 
 @bp.route("/api/report/<day>/wa")

@@ -273,3 +273,56 @@ def test_deepl_request_format(app, monkeypatch):
     assert seen["auth"] == "DeepL-Auth-Key abc:fx"
     assert seen["body"]["source_lang"] == "ID" and seen["body"]["target_lang"] == "EN-US"
     app.config["DEEPL_API_KEY"] = ""
+
+
+def test_pending_days_and_late_flag(app):
+    from datetime import datetime
+
+    from app.views.report import pending_days
+
+    today = date.today()
+    # Akun dibuat 20 hari lalu supaya ada hari kerja yang terlewat.
+    with app.app_context():
+        u = User.query.filter_by(name="Budi").first()
+        u.created_at = datetime.now() - timedelta(days=20)
+        db.session.commit()
+    workdays = [today - timedelta(days=i) for i in range(1, 15) if (today - timedelta(days=i)).weekday() < 5]
+    late_day = workdays[0]
+
+    staff = app.test_client()
+    login(app, staff, "Budi", "1234")
+    pend = staff.get(f"/api/report/{today.isoformat()}").json["pending"]
+    assert [p["date"] for p in pend] == sorted(d.isoformat() for d in workdays)
+    assert all(p["kind"] == "empty" for p in pend)
+
+    # Isi susulan untuk hari kerja terakhir, lalu kirim.
+    staff.put(f"/api/report/{late_day.isoformat()}", json={"items": [{"text": "Cek AC lobby", "cat": "x"}]})
+    pend = staff.get(f"/api/report/{today.isoformat()}").json["pending"]
+    assert {"date": late_day.isoformat(), "kind": "draft"} in pend
+    r = staff.post(f"/api/report/{late_day.isoformat()}/send").json
+    assert late_day.isoformat() not in [p["date"] for p in r["pending"]]
+
+    with app.app_context():
+        rep = Report.query.filter_by(date=late_day).one()
+        assert rep.late_days == (today - late_day).days
+        first = rep.first_submitted_at
+        report_id = rep.id
+        u = User.query.filter_by(name="Budi").first()
+        assert len(pending_days(u, today)) == len(workdays) - 1
+
+    # Kirim ulang tidak menggeser waktu kirim pertama.
+    staff.put(f"/api/report/{late_day.isoformat()}", json={"items": [{"text": "Cek AC lobby 2", "cat": "x"}]})
+    staff.post(f"/api/report/{late_day.isoformat()}/send")
+    with app.app_context():
+        assert db.session.get(Report, report_id).first_submitted_at == first
+
+    spv = app.test_client()
+    login(app, spv, "Spv HRGA", "spv-password")
+    assert "Susulan" in spv.get(f"/spv?tanggal={late_day.isoformat()}").get_data(as_text=True)
+    assert "Laporan susulan" in spv.get(f"/spv/report/{report_id}").get_data(as_text=True)
+
+    # Laporan hari ini yang dikirim hari ini bukan susulan.
+    staff.put(f"/api/report/{today.isoformat()}", json={"items": [{"text": "Servis motor", "cat": "x"}]})
+    staff.post(f"/api/report/{today.isoformat()}/send")
+    with app.app_context():
+        assert Report.query.filter_by(date=today).one().late_days == 0

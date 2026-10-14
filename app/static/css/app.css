@@ -1904,3 +1904,172 @@ summary.rh-group-title::-webkit-details-marker {
         transition: none !important;
     }
 }
+
+/* ---------- Dropdown umum (static/js/select.js) ---------- */
+
+/* <select> asli tetap di form (validasi & submit), tapi tidak terlihat. */
+.rh-select-native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.rh-select-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rh-select-btn span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rh-select-btn.is-placeholder {
+    color: var(--bs-secondary-color);
+}
+
+.rh-select-btn:focus-visible,
+.rh-select-btn[aria-expanded="true"] {
+    border-color: var(--rh-accent);
+    box-shadow: 0 0 0 0.2rem rgba(234, 88, 12, 0.2);
+    outline: 0;
+}
+
+.rh-select-btn.is-invalid {
+    border-color: #dc3545;
+}
+
+.rh-picker-group {
+    padding: 10px 12px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+/* ---------- Isi susulan: hari kerja yang belum dikirim ---------- */
+
+.rh-pending {
+    margin-bottom: 14px;
+    padding: 12px 14px 10px;
+    border-radius: 14px;
+    border: 1px solid #fed7aa;
+    background: var(--rh-accent-soft);
+}
+
+.rh-pending-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    color: #9a3412;
+    font-size: 14px;
+}
+
+.rh-pending-head > i {
+    font-size: 16px;
+}
+
+.rh-pending-head small {
+    flex-basis: 100%;
+    color: var(--bs-secondary-color);
+    font-size: 12px;
+}
+
+.rh-pending-days {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 8px 2px 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rh-pending-days::-webkit-scrollbar {
+    display: none;
+}
+
+.rh-pending-day {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 44px;
+    padding: 5px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    line-height: 1.25;
+    text-align: left;
+}
+
+.rh-pending-day strong {
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.rh-pending-day small {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+}
+
+.rh-pending-day.is-draft small {
+    color: var(--rh-accent);
+}
+
+.rh-pending-day.is-revision small {
+    color: #be123c;
+}
+
+.rh-pending-day:hover {
+    border-color: var(--rh-accent);
+}
+
+.rh-pending-day.is-on {
+    border-color: var(--rh-accent);
+    box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25);
+}
+
+[data-bs-theme="dark"] .rh-pending {
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
+[data-bs-theme="dark"] .rh-pending-head {
+    color: #fdba74;
+}
+
+[data-bs-theme="dark"] .rh-pending-day.is-revision small {
+    color: #fda4af;
+}
+
+/* Laporan susulan (dikirim setelah tanggalnya lewat) */
+.rh-flag.rh-flag-late {
+    color: #1d4ed8;
+}
+
+.rh-notice-late {
+    color: #1e3a8a;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+[data-bs-theme="dark"] .rh-flag.rh-flag-late {
+    color: #93c5fd;
+}
+
+[data-bs-theme="dark"] .rh-notice-late {
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+}

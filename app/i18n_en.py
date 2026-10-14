@@ -155,6 +155,9 @@ EN = {
     "Tambahkan": "Add",
     "Kategori otomatis": "Auto category",
     "Pilih kategori": "Choose category",
+    "Pilih": "Choose",
+    "Cari…": "Search…",
+    "Tidak ditemukan": "Not found",
     "Cari kategori…": "Search categories…",
     "Tanpa kategori": "No category",
     "Kategori tidak ditemukan": "No matching category",
@@ -338,11 +341,21 @@ EN = {
     "API key DeepL ditolak. Cek DEEPL_API_KEY di file .env server.": "DeepL rejected the API key. Check DEEPL_API_KEY in the server's .env file.",
     "Kuota DeepL bulan ini sudah habis.": "This month's DeepL quota is used up.",
     "DeepL sedang sibuk, coba lagi sebentar.": "DeepL is busy, try again shortly.",
+    # ---------------------------------------------------------- susulan
+    "Belum dikirim ke Spv": "Not sent to Spv yet",
+    "Ketuk tanggal untuk mengisi": "Tap a date to fill it in",
+    "Belum diisi": "Empty",
+    "Draf": "Draft",
+    "Susulan {d}": "Late, for {d}",
+    "Susulan · dikirim {t}": "Late · sent {t}",
+    "Laporan susulan": "Late report",
+    "Pertama dikirim {t}, {n} hari setelah tanggal laporan.": "First sent {t}, {n} days after the report date.",
     "Tidak bisa menghubungi DeepL. Cek koneksi internet server.": "Could not reach DeepL. Check the server's internet connection.",
 }
 
 # Bentuk tunggal English, dipakai kalau n == 1 ("1 item", bukan "1 items").
 EN_ONE = {
+    "Pertama dikirim {t}, {n} hari setelah tanggal laporan.": "First sent {t}, {n} day after the report date.",
     "{n} pekerjaan": "{n} item",
     "{n} hari lalu": "{n} day ago",
     "{n} hari ditemukan": "{n} day found",

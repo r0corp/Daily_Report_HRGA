@@ -71,6 +71,10 @@ const longDate = s => {
     const d = parseISO(s), en = P.lang === "en";
     return `${(en ? DAYS_EN : HARI)[d.getDay()]}, ${d.getDate()} ${(en ? MONTHS_EN : BULAN)[d.getMonth()]} ${d.getFullYear()}`;
 };
+const shortDate = s => {
+    const d = parseISO(s), en = P.lang === "en";
+    return `${(en ? DAYS_EN : HARI)[d.getDay()].slice(0, 3)}, ${d.getDate()} ${(en ? MONTHS_EN : BULAN)[d.getMonth()].slice(0, 3)}`;
+};
 const ls = {
     get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
@@ -173,6 +177,22 @@ function renderState() {
     $("stateBox").innerHTML = box;
 }
 
+// ---------- hari kerja yang belum dikirim ----------
+let pending = [];
+const PENDING_KIND = { empty: "Belum diisi", draft: "Draf", revision: "Perlu perbaikan" };
+function renderPending() {
+    const box = $("pendingBox");
+    box.hidden = !pending.length;
+    if (!pending.length) return;
+    $("pendingCount").textContent = pending.length;
+    $("pendingDays").innerHTML = pending.map(p => `<button type="button" class="rh-pending-day is-${p.kind}${p.date === cur.date ? " is-on" : ""}" data-date="${p.date}">
+        <strong>${esc(shortDate(p.date))}</strong><small>${T(PENDING_KIND[p.kind])}</small></button>`).join("");
+}
+$("pendingDays").addEventListener("click", e => {
+    const b = e.target.closest("[data-date]");
+    if (b && b.dataset.date !== cur.date) load(b.dataset.date);
+});
+
 function renderDate() {
     const d = parseISO(cur.date), today = parseISO(P.today);
     const diff = Math.round((today - d) / 86400000);
@@ -198,6 +218,7 @@ async function load(date) {
     prevRutin = data.previous_rutin || [];
     prevAll = data.previous_items || [];
     prevDate = data.previous_date;
+    pending = data.pending || [];
     cur = { ...data, items: (data.items || []).map(i => ({ ...i })) };
     const draft = ls.get("rh-draft:" + date);
     if (draft && cur.editable && draft.savedAt && (!data.exists || draft.unsaved)) {
@@ -213,6 +234,7 @@ async function load(date) {
     $("copyAllInfo").textContent = prevAll.length ? T("{n} pekerjaan dari {d}, tinggal diubah", { n: prevAll.length, d: prevDate }) : "";
     history.replaceState(null, "", "?tanggal=" + date);
     renderDate();
+    renderPending();
     renderQuick();
     renderItems();
 }
@@ -254,6 +276,8 @@ async function send() {
     try {
         const data = await api("POST", `/api/report/${cur.date}/send`);
         Object.assign(cur, { state: data.state, submitted_at: data.submitted_at, edited_after_submit: false, editable: data.editable });
+        pending = data.pending || [];
+        renderPending();
         renderState();
         setSaveState(T("Terkirim ke Spv"));
         window.scrollTo({ top: 0, behavior: "smooth" });

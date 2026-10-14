@@ -10,6 +10,7 @@
     <span class="rh-person-main">
         <strong>{{ u.name }}</strong>
         <small>{{ _(u.team) }} · {% if r.day_status and not r.items %}{{ _(r.day_status) }}{% else %}{{ _('{n} pekerjaan', n=r.items|length) }}{% endif %}{% if r.submitted_at %} · {{ r.submitted_at.strftime('%H:%M') }}{% endif %}</small>
+        {% if r.late_days %}<span class="rh-flag rh-flag-late"><i class="bi bi-clock-history"></i>{{ _('Susulan · dikirim {t}', t=r.first_submitted_at|tanggal(False)) }}</span>{% endif %}
         {% if r.edited_after_submit %}<span class="rh-flag"><i class="bi bi-pencil-fill"></i>{{ _('Diubah setelah dikirim') }}</span>{% endif %}
     </span>
     {% if cta %}<span class="rh-person-cta">{{ _('Periksa') }}<i class="bi bi-chevron-right"></i></span>
@@ -113,7 +114,8 @@
             {% for r in pending %}
             <a class="rh-person" href="{{ url_for('spv.detail', report_id=r.id) }}">
                 <span class="rh-avatar">{{ r.user.initials }}</span>
-                <span class="rh-person-main"><strong>{{ r.user.name }}</strong><small>{{ r.date|tanggal }} · {{ _('{n} pekerjaan', n=r.items|length) }}</small></span>
+                <span class="rh-person-main"><strong>{{ r.user.name }}</strong><small>{{ r.date|tanggal }} · {{ _('{n} pekerjaan', n=r.items|length) }}</small>
+                    {% if r.late_days %}<span class="rh-flag rh-flag-late"><i class="bi bi-clock-history"></i>{{ _('Susulan · dikirim {t}', t=r.first_submitted_at|tanggal(False)) }}</span>{% endif %}</span>
                 <i class="bi bi-chevron-right rh-person-arrow"></i>
             </a>
             {% endfor %}

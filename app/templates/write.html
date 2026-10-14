@@ -18,6 +18,13 @@
         <input type="text" id="fDate" class="rh-date-input" data-no-picker tabindex="-1" aria-hidden="true">
     </div>
 
+    <!-- Hari kerja yang belum dikirim (isi susulan) -->
+    <div class="rh-pending" id="pendingBox" hidden>
+        <div class="rh-pending-head"><i class="bi bi-calendar2-x"></i><strong>{{ _('Belum dikirim ke Spv') }}</strong>
+            <span class="rh-count" id="pendingCount"></span><small>{{ _('Ketuk tanggal untuk mengisi') }}</small></div>
+        <div class="rh-pending-days" id="pendingDays"></div>
+    </div>
+
     <div id="stateBox"></div>
 
     <!-- 2. Status hari -->

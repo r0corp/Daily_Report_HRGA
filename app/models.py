@@ -76,6 +76,9 @@ class Report(db.Model):
 
     state = db.Column(db.String(20), nullable=False, default=STATE_DRAFT)
     submitted_at = db.Column(db.DateTime)
+    # Kiriman pertama (tidak berubah saat kirim ulang / kirim perbaikan),
+    # dipakai untuk menandai laporan susulan.
+    first_submitted_at = db.Column(db.DateTime)
     # Diubah staf setelah dikirim (Spv perlu tahu isinya berubah).
     edited_after_submit = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -115,6 +118,13 @@ class Report(db.Model):
     @property
     def editable(self):
         return self.state != "checked"
+
+    @property
+    def late_days(self):
+        """Berapa hari setelah tanggal laporan baru dikirim (0 = tepat waktu)."""
+        if self.source != "app" or not self.first_submitted_at:
+            return 0
+        return max(0, (self.first_submitted_at.date() - self.date).days)
 
 
 class Setting(db.Model):
