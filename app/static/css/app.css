@@ -1554,3 +1554,44 @@ summary.rh-group-title::-webkit-details-marker {
         gap: 0;
     }
 }
+
+/* ============================================================
+   APK / WEBVIEW: jarak aman dari status bar, poni, dan bar navigasi
+   HP (berlaku saat halaman memakai viewport-fit=cover). Di browser
+   biasa env() bernilai 0 sehingga tampilan tidak berubah.
+   ============================================================ */
+
+.app-header.navbar {
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    margin-top: calc(14px + env(safe-area-inset-top, 0px));
+}
+
+.app-sidebar.app-sidebar {
+    top: calc(14px + env(safe-area-inset-top, 0px)) !important;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.app-footer {
+    margin-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 575.98px) {
+    .app-header.navbar {
+        top: calc(10px + env(safe-area-inset-top, 0px));
+        margin-top: calc(10px + env(safe-area-inset-top, 0px));
+    }
+
+    .app-sidebar.app-sidebar {
+        top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .app-footer {
+        margin-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.app-wrapper {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}

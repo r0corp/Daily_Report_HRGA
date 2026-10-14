@@ -420,11 +420,34 @@ $("btnPrev").onclick = () => shiftDay(-1);
 $("btnNext").onclick = () => shiftDay(1);
 $("btnPickDate").onclick = () => fp && fp.open();
 $("btnSend").onclick = send;
+// navigator.clipboard hanya ada di https; di http (server kantor) dan
+// WebView APK pakai textarea + execCommand yang masih didukung.
+async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:-1000px;left:0;opacity:0;font-size:16px";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+    return ok;
+}
 $("btnCopy").onclick = async () => {
     const b = $("btnCopy"), h = b.innerHTML;
-    try { await navigator.clipboard.writeText(waText()); b.innerHTML = '<i class="bi bi-check2 me-1"></i>Tersalin'; }
-    catch (e) { const r = document.createRange(); r.selectNodeContents($("waText")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Tekan Ctrl+C"; }
-    setTimeout(() => b.innerHTML = h, 1800);
+    if (await copyText(waText())) {
+        b.innerHTML = '<i class="bi bi-check2 me-1"></i>Tersalin, tinggal tempel di WhatsApp';
+    } else {
+        const r = document.createRange(); r.selectNodeContents($("waText"));
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+        b.textContent = "Teks sudah dipilih, tekan lama lalu Salin";
+    }
+    setTimeout(() => b.innerHTML = h, 2500);
 };
 window.addEventListener("pagehide", flush);
 window.addEventListener("beforeunload", e => { if (dirty) { flush(); } });
