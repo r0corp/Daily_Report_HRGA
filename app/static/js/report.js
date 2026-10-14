@@ -118,7 +118,7 @@ function setSaveState(t, err) { $("saveState").textContent = t; $("saveState").c
 function renderItems() {
     const ro = !cur.editable;
     $("items").innerHTML = cur.items.map((it, k) => `
-    <li class="rh-item" data-k="${k}">
+    <li class="rh-item${it.text.trim() ? "" : " is-blank"}" data-k="${k}">
       <span class="rh-num">${k + 1}</span>
       <div class="rh-item-main">
         <textarea id="it-${k}" rows="1" class="form-control rh-input" ${ro ? "readonly" : ""}
@@ -134,7 +134,7 @@ function renderItems() {
       ${ro ? "" : `<button type="button" class="rh-del" data-act="del" title="${T("Hapus pekerjaan ini")}" aria-label="${T("Hapus pekerjaan {n}", { n: k + 1 })}"><i class="bi bi-x-lg"></i></button>`}
     </li>`).join("");
     resizeAll();
-    $("btnAdd").disabled = ro;
+    $("docHint").hidden = ro;
     $("btnPaste").disabled = ro;
     if (P.translateApi) $("btnTranslateAll").disabled = ro;
     if (P.translate && !P.translateApi) ["btnDeepL", "btnPasteTr"].forEach(id => $(id).disabled = ro);
@@ -294,6 +294,7 @@ $("items").addEventListener("input", e => {
     if (!li || e.target.tagName !== "TEXTAREA") return;
     const it = cur.items[+li.dataset.k];
     it.text = e.target.value;
+    li.classList.toggle("is-blank", !it.text.trim());
     autosize(e.target);
     if (CAN_AUTO && !it.manual) {
         it.cat = classify(it.text);
@@ -302,15 +303,93 @@ $("items").addEventListener("input", e => {
     if (P.auto && !it.manualRutin) setRutin(li, it, RUTIN.test(it.text));
     markDirty();
 });
-// Enter di baris terakhir yang sudah terisi = langsung tambah pekerjaan baru
-// (Shift+Enter tetap baris baru untuk rincian).
+// ---------- lembar ketik ala Word ----------
+// Setiap nomor tetap satu pekerjaan (kategori/rutin per baris), tapi cara
+// mengetiknya seperti dokumen: Enter = nomor baru (memotong di kursor),
+// Backspace di awal = gabung ke atas, Delete di akhir = gabung yang bawah,
+// panah atas/bawah di ujung baris pindah nomor, tempel banyak baris = dipecah.
+// Shift+Enter tetap baris rincian di nomor yang sama.
+const newItem = text => ({ text, cat: text && CAN_AUTO ? classify(text) : "", rutin: !!P.auto && RUTIN.test(text), manual: false });
+function recat(it) {
+    if (CAN_AUTO && !it.manual) it.cat = classify(it.text);
+    if (P.auto && !it.manualRutin) it.rutin = RUTIN.test(it.text);
+}
+function focusItem(k, pos) {
+    const ta = $("it-" + k);
+    if (!ta) return;
+    ta.focus();
+    const p = pos === "end" || pos == null ? ta.value.length : pos;
+    ta.setSelectionRange(p, p);
+}
+function splitItem(k, start, end) {
+    const it = cur.items[k], text = it.text;
+    if (!text.trim()) return;
+    it.text = text.slice(0, start).replace(/\s+$/, "");
+    recat(it);
+    cur.items.splice(k + 1, 0, newItem(text.slice(end).replace(/^\s+/, "")));
+    renderItems();
+    focusItem(k + 1, 0);
+    markDirty();
+}
+function mergeInto(k) {           // gabung item k+1 ke item k
+    const a = cur.items[k], b = cur.items[k + 1];
+    if (!a || !b) return;
+    const pos = a.text.length;
+    a.text = a.text && b.text ? a.text + " " + b.text : a.text + b.text;
+    if (!pos) { a.cat = b.cat; a.manual = b.manual; a.rutin = b.rutin; a.manualRutin = b.manualRutin; }
+    else recat(a);
+    cur.items.splice(k + 1, 1);
+    renderItems();
+    focusItem(k, pos);
+    markDirty();
+}
+let softBreak = false;
 $("items").addEventListener("keydown", e => {
-    if (e.key !== "Enter" || e.shiftKey || e.target.tagName !== "TEXTAREA") return;
-    const k = +e.target.closest(".rh-item").dataset.k;
-    if (k === cur.items.length - 1 && e.target.value.trim() && !e.target.value.includes("\n")) {
-        e.preventDefault();
-        addItem();
-    }
+    const ta = e.target;
+    if (ta.tagName !== "TEXTAREA" || ta.readOnly || e.isComposing) return;
+    const k = +ta.closest(".rh-item").dataset.k;
+    const s = ta.selectionStart, en = ta.selectionEnd, len = ta.value.length;
+    if (e.key === "Enter") { softBreak = e.shiftKey; return; }   // diproses di beforeinput (juga untuk keyboard HP)
+    if (e.key === "Backspace" && s === 0 && en === 0 && k > 0) { e.preventDefault(); mergeInto(k - 1); }
+    else if (e.key === "Delete" && s === len && en === len && k < cur.items.length - 1) { e.preventDefault(); mergeInto(k); }
+    else if (e.key === "ArrowUp" && s === 0 && en === 0 && k > 0) { e.preventDefault(); focusItem(k - 1, "end"); }
+    else if (e.key === "ArrowDown" && s === len && en === len && k < cur.items.length - 1) { e.preventDefault(); focusItem(k + 1, 0); }
+});
+$("items").addEventListener("beforeinput", e => {
+    const ta = e.target;
+    if (ta.tagName !== "TEXTAREA" || ta.readOnly) return;
+    if (e.inputType !== "insertLineBreak" && e.inputType !== "insertParagraph") return;
+    if (softBreak) { softBreak = false; return; }
+    e.preventDefault();
+    splitItem(+ta.closest(".rh-item").dataset.k, ta.selectionStart, ta.selectionEnd);
+});
+$("items").addEventListener("paste", e => {
+    const ta = e.target;
+    if (ta.tagName !== "TEXTAREA" || ta.readOnly) return;
+    const raw = (e.clipboardData || window.clipboardData).getData("text");
+    const lines = parseReport(raw);
+    if (lines.length < 2) return;
+    e.preventDefault();
+    const k = +ta.closest(".rh-item").dataset.k, it = cur.items[k];
+    // Teks sebelum kursor tetap di nomor ini; setiap baris tempelan jadi
+    // nomor sendiri; teks setelah kursor turun ke nomor terakhir.
+    const before = ta.value.slice(0, ta.selectionStart).replace(/\s+$/, "");
+    const after = ta.value.slice(ta.selectionEnd).replace(/^\s+/, "");
+    const rest = before ? lines : lines.slice(1);
+    if (!before) it.text = lines[0];
+    recat(it);
+    const extra = rest.map(newItem);
+    if (after) extra.push(newItem(after));
+    cur.items.splice(k + 1, 0, ...extra);
+    renderItems();
+    focusItem(k + extra.length - (after ? 1 : 0), "end");
+    markDirty();
+});
+// Ketuk area kosong lembar = lanjut mengetik di baris terakhir.
+$("items").addEventListener("mousedown", e => {
+    if (e.target !== $("items") || !cur || !cur.editable) return;
+    e.preventDefault();
+    focusItem(cur.items.length - 1, "end");
 });
 function setRutin(li, it, on) {
     it.rutin = on;
@@ -504,7 +583,6 @@ function addItem(text = "", rutin = false) {
     if (text) markDirty();
     else { const ta = $("it-" + (cur.items.length - 1)); if (ta) ta.focus(); }
 }
-$("btnAdd").onclick = () => addItem();
 // Dipakai notes.js: catatan draft -> pekerjaan di tanggal yang sedang dibuka.
 window.rhReport = {
     canAdd: () => !!(cur && cur.editable),

@@ -341,6 +341,7 @@ EN = {
     "API key DeepL ditolak. Cek DEEPL_API_KEY di file .env server.": "DeepL rejected the API key. Check DEEPL_API_KEY in the server's .env file.",
     "Kuota DeepL bulan ini sudah habis.": "This month's DeepL quota is used up.",
     "DeepL sedang sibuk, coba lagi sebentar.": "DeepL is busy, try again shortly.",
+    "Tekan Enter untuk menulis pekerjaan berikutnya.": "Press Enter to write the next item.",
     # ---------------------------------------------------------- catatan draft
     "Catatan draft": "Draft notes",
     "Catatan": "Note",

@@ -2246,3 +2246,141 @@ summary.rh-group-title::-webkit-details-marker {
         scrollbar-width: thin;
     }
 }
+
+
+/* ============================================================
+   LEMBAR KETIK ALA WORD (Tulis Report): nomor polos, tanpa kotak
+   per pekerjaan. Hanya untuk .rh-doc (halaman Spv tetap seperti biasa).
+   ============================================================ */
+
+.rh-items.rh-doc {
+    min-height: 150px;
+    padding: 10px 0 6px;
+    cursor: text;
+}
+
+.rh-doc .rh-item {
+    grid-template-columns: 30px minmax(0, 1fr) 30px;
+    gap: 6px;
+    padding: 3px 14px 5px 10px;
+    border-bottom: 0;
+    border-left: 3px solid transparent;
+}
+
+.rh-doc .rh-item:focus-within {
+    border-left-color: var(--rh-accent);
+    background: var(--rh-accent-soft);
+}
+
+.rh-doc .rh-num {
+    width: auto;
+    height: auto;
+    margin-top: 7px;
+    justify-content: flex-end;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: var(--bs-secondary-color);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.rh-doc .rh-num::after {
+    content: ".";
+}
+
+.rh-doc .rh-item:focus-within .rh-num {
+    color: var(--rh-accent);
+}
+
+.rh-doc .rh-input {
+    min-height: 0;
+    padding: 6px 4px 2px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.rh-doc .rh-input:focus {
+    box-shadow: none;
+    background: transparent;
+}
+
+.rh-doc .rh-item-meta {
+    gap: 4px;
+    margin-top: 0;
+    padding-left: 2px;
+}
+
+.rh-doc .rh-pill {
+    padding: 0 8px;
+    font-size: 11.5px;
+    line-height: 1.7;
+}
+
+.rh-doc .rh-item.is-blank .rh-item-meta {
+    display: none;
+}
+
+/* Tombol hapus hanya muncul di baris yang sedang diketik / disorot. */
+.rh-doc .rh-del {
+    width: 30px;
+    height: 30px;
+    margin-top: 3px;
+    font-size: 13px;
+    opacity: 0;
+}
+
+.rh-doc .rh-item:hover .rh-del,
+.rh-doc .rh-item:focus-within .rh-del {
+    opacity: 1;
+}
+
+.rh-doc-hint {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px 20px 14px;
+    border-top: 1px dashed var(--bs-border-color-translucent);
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+}
+
+@media (hover: none) {
+    .rh-doc .rh-del {
+        opacity: 0;
+    }
+
+    .rh-doc .rh-item:focus-within .rh-del {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .rh-doc .rh-item {
+        grid-template-columns: 24px minmax(0, 1fr) 30px;
+        padding: 3px 8px 5px 6px;
+    }
+
+    .rh-doc .rh-num {
+        margin-top: 7px;
+        font-size: 15px;
+    }
+
+    .rh-doc-hint {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}
+
+/* Supaya sesederhana buku catatan: label kategori/rutin hanya tampil di
+   baris yang sedang diketik (kategori tetap terisi otomatis). */
+.rh-doc .rh-item:not(:focus-within) .rh-item-meta {
+    display: none;
+}
+
+.rh-doc .rh-item:focus-within .rh-item-meta {
+    padding-bottom: 4px;
+}
