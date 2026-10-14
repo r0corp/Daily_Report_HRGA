@@ -98,3 +98,17 @@ terjemahan English ada di `app/i18n_en.py` (`EN_ONE` untuk bentuk tunggal "1 ite
 Setelah menambah teks baru, jalankan `venv\Scripts\python.exe tools\i18n_check.py` untuk
 melihat teks yang belum diterjemahkan. Data tidak diterjemahkan: nama kategori, isi laporan,
 dan format teks WhatsApp ("Daily Report Senin/...").
+
+## Terjemah report IT (DeepL)
+
+Khusus tim IT, halaman Tulis Report punya label **EN** per pekerjaan dan tombol
+**Terjemahkan semua** (Indonesia -> English, lewat DeepL API dari server) plus **Urungkan**.
+Kategori otomatis dihitung ulang dari teks Inggris.
+
+Aktifkan dengan menambah baris ini ke `.env` server lalu restart service:
+```
+DEEPL_API_KEY=<key dari deepl.com/pro-api>
+```
+Key paket Free (berakhiran `:fx`, gratis 500.000 karakter/bulan) otomatis memakai
+`api-free.deepl.com`. Tanpa key, tombol tetap tampil dan memberi pesan "penerjemah belum diatur".
+Isi pekerjaan dikirim ke DeepL saat tombol ditekan.

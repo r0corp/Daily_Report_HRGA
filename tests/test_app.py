@@ -222,3 +222,48 @@ def test_english_dates(app):
         assert format_date(date(2026, 10, 12)) == "Monday, 12 October 2026"
     with app.test_request_context():
         assert format_date(date(2026, 10, 12)) == "Senin, 12 Oktober 2026"
+
+
+def test_translate_only_for_it_and_reports_errors(app, monkeypatch):
+    import app.translate as tr
+
+    budi = app.test_client()
+    login(app, budi, "Budi", "1234")
+    assert budi.post("/api/translate", json={"texts": ["Membersihkan lobby"]}).status_code == 403
+
+    admin = app.test_client()
+    login(app, admin, "Admin IT", "admin-password")
+    assert "btnTranslateAll" in admin.get("/tulis").get_data(as_text=True)
+    assert "btnTranslateAll" not in budi.get("/tulis").get_data(as_text=True)
+
+    # Tanpa API key -> pesan "belum diatur".
+    r = admin.post("/api/translate", json={"texts": ["Cek printer"]})
+    assert r.status_code == 503 and r.json["kind"] == "not_configured"
+
+    monkeypatch.setattr(tr, "deepl_translate", lambda texts, **kw: [t.upper() for t in texts])
+    r = admin.post("/api/translate", json={"texts": ["cek printer", "", "remote laptop"]})
+    assert r.status_code == 200 and r.json["texts"] == ["CEK PRINTER", "", "REMOTE LAPTOP"]
+
+
+def test_deepl_request_format(app, monkeypatch):
+    import io
+    import json as _json
+    import urllib.request
+    import app.translate as tr
+
+    seen = {}
+
+    def fake_urlopen(req, timeout):
+        seen["url"] = req.full_url
+        seen["auth"] = req.get_header("Authorization")
+        seen["body"] = _json.loads(req.data)
+        return io.BytesIO(_json.dumps({"translations": [{"text": "Checked the printer"}]}).encode())
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    app.config["DEEPL_API_KEY"] = "abc:fx"
+    with app.app_context():
+        assert tr.deepl_translate(["Cek printer"]) == ["Checked the printer"]
+    assert seen["url"] == tr.FREE_URL
+    assert seen["auth"] == "DeepL-Auth-Key abc:fx"
+    assert seen["body"]["source_lang"] == "ID" and seen["body"]["target_lang"] == "EN-US"
+    app.config["DEEPL_API_KEY"] = ""

@@ -125,8 +125,46 @@ def write():
         quick=team_quick(current_user.team),
         day_statuses=DAY_STATUSES,
         auto_category=current_user.team == "IT",
+        can_translate=can_translate(current_user),
         js_i18n=js_strings(),
     )
+
+
+def can_translate(user):
+    """Tombol terjemah Indonesia -> English hanya untuk tim IT."""
+    return user.team == "IT"
+
+
+MAX_TRANSLATE_CHARS = 20000
+
+
+@bp.route("/api/translate", methods=["POST"])
+@login_required
+def api_translate():
+    from ..translate import TranslateError, deepl_translate
+
+    if not can_translate(current_user):
+        return jsonify({"error": _("Fitur terjemah hanya untuk tim IT.")}), 403
+    body = request.get_json(silent=True) or {}
+    texts = [str(t)[:MAX_TEXT] for t in (body.get("texts") or []) if isinstance(t, str)][:MAX_ITEMS]
+    if not any(t.strip() for t in texts):
+        return jsonify({"texts": texts})
+    if sum(len(t) for t in texts) > MAX_TRANSLATE_CHARS:
+        return jsonify({"error": _("Teks terlalu panjang untuk diterjemahkan sekaligus.")}), 400
+    try:
+        out = deepl_translate(texts)
+    except TranslateError as e:
+        messages = {
+            "not_configured": _("Penerjemah belum diatur. Isi DEEPL_API_KEY di file .env server."),
+            "auth": _("API key DeepL ditolak. Cek DEEPL_API_KEY di file .env server."),
+            "quota": _("Kuota DeepL bulan ini sudah habis."),
+            "busy": _("DeepL sedang sibuk, coba lagi sebentar."),
+        }
+        msg = messages.get(e.kind, _("Tidak bisa menghubungi DeepL. Cek koneksi internet server."))
+        return jsonify({"error": msg, "kind": e.kind}), 503
+    if len(out) != len(texts):
+        return jsonify({"error": _("Tidak bisa menghubungi DeepL. Cek koneksi internet server.")}), 502
+    return jsonify({"texts": out})
 
 
 @bp.route("/api/report/<day>")

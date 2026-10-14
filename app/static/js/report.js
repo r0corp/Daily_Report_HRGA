@@ -134,6 +134,7 @@ function renderItems() {
           </label>
           <button type="button" class="rh-pill rh-rutin-pill${it.rutin ? " is-on" : ""}" data-act="rutin" ${ro ? "disabled" : ""}
             aria-pressed="${it.rutin}" title="${T("Tandai sebagai pekerjaan rutin")}"><i class="bi bi-arrow-repeat"></i>${T("Rutin")}</button>
+          ${P.translate && !ro ? `<button type="button" class="rh-pill rh-tr-pill" data-act="tr" title="${T("Terjemahkan ke Bahasa Inggris")}"><i class="bi bi-translate"></i>EN</button>` : ""}
         </div>
       </div>
       ${ro ? "" : `<button type="button" class="rh-del" data-act="del" title="${T("Hapus pekerjaan ini")}" aria-label="${T("Hapus pekerjaan {n}", { n: k + 1 })}"><i class="bi bi-x-lg"></i></button>`}
@@ -141,6 +142,7 @@ function renderItems() {
     resizeAll();
     $("btnAdd").disabled = ro;
     $("btnPaste").disabled = ro;
+    if (P.translate) $("btnTranslateAll").disabled = ro;
     document.querySelectorAll(".rh-chip").forEach(c => c.disabled = ro);
     $("quickWrap").hidden = ro || !P.quick.length;
     updateCounts();
@@ -320,7 +322,54 @@ $("items").addEventListener("click", e => {
         renderItems(); markDirty();
     }
     if (b.dataset.act === "rutin") { it.manualRutin = true; setRutin(li, it, !it.rutin); markDirty(); }
+    if (b.dataset.act === "tr") translateItems([k], b);
 });
+
+// ---------- terjemah Indonesia -> English (tim IT, lewat DeepL di server) ----------
+let undoTr = null, undoTimer = null;
+async function translateItems(indices, btn) {
+    indices = indices.filter(k => cur.items[k] && cur.items[k].text.trim());
+    if (!indices.length || !P.translate) return;
+    const busy = [btn, $("btnTranslateAll")].filter(Boolean);
+    const html = busy.map(b => b.innerHTML);
+    busy.forEach(b => { b.disabled = true; });
+    if (btn) btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+    setSaveState(T("Menerjemahkan…"));
+    try {
+        const data = await api("POST", "/api/translate", { texts: indices.map(k => cur.items[k].text) });
+        undoTr = indices.map(k => ({ k, text: cur.items[k].text, cat: cur.items[k].cat }));
+        indices.forEach((k, i) => {
+            const it = cur.items[k];
+            it.text = data.texts[i];
+            // Kategori otomatis IT memakai kata kunci Inggris -> hitung ulang.
+            if (CAN_AUTO && !it.manual) it.cat = classify(it.text);
+            if (P.auto && !it.manualRutin) it.rutin = RUTIN.test(it.text);
+        });
+        renderItems();
+        markDirty();
+        $("btnUndoTr").hidden = false;
+        clearTimeout(undoTimer);
+        undoTimer = setTimeout(() => { $("btnUndoTr").hidden = true; undoTr = null; }, 30000);
+    } catch (e) {
+        // Pop-up, bukan baris status: baris status ditimpa autosave ("Tersimpan").
+        setSaveState(dirty ? T("Belum tersimpan…") : T("Tersimpan"));
+        if (window.rhNotify) window.rhNotify.toast({ type: "revision", title: T("Belum bisa menerjemahkan"), text: e.message });
+    } finally {
+        busy.forEach((b, i) => { b.disabled = false; b.innerHTML = html[i]; });
+    }
+}
+if (P.translate) {
+    $("btnTranslateAll").onclick = () =>
+        translateItems(cur.items.map((_, k) => k), null);
+    $("btnUndoTr").onclick = () => {
+        if (!undoTr) return;
+        for (const u of undoTr) if (cur.items[u.k]) { cur.items[u.k].text = u.text; cur.items[u.k].cat = u.cat; }
+        undoTr = null;
+        $("btnUndoTr").hidden = true;
+        renderItems();
+        markDirty();
+    };
+}
 
 function addItem(text = "", rutin = false) {
     const last = cur.items[cur.items.length - 1];

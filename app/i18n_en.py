@@ -309,6 +309,21 @@ EN = {
     "Simpan {team}": "Save {team}",
     "Kategori {team} dikembalikan ke bawaan.": "{team} categories restored to defaults.",
     "Kategori dan pekerjaan rutin {team} disimpan.": "{team} categories and routine work saved.",
+
+    # ---------------------------------------------------------- terjemah (tim IT)
+    "Terjemahkan ke Bahasa Inggris": "Translate to English",
+    "Terjemahkan semua pekerjaan ke Bahasa Inggris": "Translate all work items to English",
+    "Terjemahkan semua": "Translate all",
+    "Menerjemahkan…": "Translating…",
+    "Belum bisa menerjemahkan": "Could not translate",
+    "Urungkan": "Undo",
+    "Fitur terjemah hanya untuk tim IT.": "Translation is only available to the IT team.",
+    "Teks terlalu panjang untuk diterjemahkan sekaligus.": "The text is too long to translate at once.",
+    "Penerjemah belum diatur. Isi DEEPL_API_KEY di file .env server.": "The translator is not set up yet. Add DEEPL_API_KEY to the server's .env file.",
+    "API key DeepL ditolak. Cek DEEPL_API_KEY di file .env server.": "DeepL rejected the API key. Check DEEPL_API_KEY in the server's .env file.",
+    "Kuota DeepL bulan ini sudah habis.": "This month's DeepL quota is used up.",
+    "DeepL sedang sibuk, coba lagi sebentar.": "DeepL is busy, try again shortly.",
+    "Tidak bisa menghubungi DeepL. Cek koneksi internet server.": "Could not reach DeepL. Check the server's internet connection.",
 }
 
 # Bentuk tunggal English, dipakai kalau n == 1 ("1 item", bukan "1 items").

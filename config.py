@@ -35,6 +35,12 @@ class Config:
     # autosave gagal kalau halaman dibiarkan terbuka lama).
     WTF_CSRF_TIME_LIMIT = None
 
+    # Penerjemah report IT (Indonesia -> English). Isi di .env server:
+    # DEEPL_API_KEY=xxxx:fx  (key Free berakhiran ":fx"). Kosong = fitur
+    # terjemah memberi pesan "belum diatur".
+    DEEPL_API_KEY = os.environ.get("DEEPL_API_KEY", "")
+    DEEPL_API_URL = os.environ.get("DEEPL_API_URL", "")
+
     # Salah PIN/password sebanyak ini -> akun dikunci sementara.
     LOGIN_MAX_FAILS = 5
     LOGIN_LOCK_MINUTES = 15
@@ -45,3 +51,4 @@ class TestConfig(Config):
     SECRET_KEY = "test"
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     WTF_CSRF_ENABLED = False
+    DEEPL_API_KEY = ""

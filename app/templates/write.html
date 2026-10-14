@@ -52,6 +52,10 @@
                 </div>
             </div>
             <div class="card-header-accent-actions">
+                {% if can_translate %}
+                <button class="btn btn-link btn-sm rh-undo-btn" id="btnUndoTr" hidden><i class="bi bi-arrow-counterclockwise me-1"></i>{{ _('Urungkan') }}</button>
+                <button class="btn btn-outline-primary btn-sm" id="btnTranslateAll" title="{{ _('Terjemahkan semua pekerjaan ke Bahasa Inggris') }}"><i class="bi bi-translate"></i><span class="d-none d-sm-inline ms-1">{{ _('Terjemahkan semua') }}</span></button>
+                {% endif %}
                 <button class="btn btn-outline-secondary btn-sm" id="btnPaste" data-bs-toggle="modal" data-bs-target="#pasteModal" title="{{ _('Tempel dari WhatsApp') }}"><i class="bi bi-clipboard-plus"></i><span class="d-none d-sm-inline ms-1">{{ _('Tempel') }}</span></button>
             </div>
         </div>
@@ -114,6 +118,7 @@
     'categories': categories,
     'quick': quick,
     'auto': auto_category,
+    'translate': can_translate,
     'keywords': keywords,
     'csrf': csrf_token(),
     'lang': lang,

@@ -1621,3 +1621,33 @@ summary.rh-group-title::-webkit-details-marker {
     color: var(--rh-accent);
     background: var(--rh-accent-soft);
 }
+
+/* ---------- Terjemah (tim IT) ---------- */
+
+.rh-tr-pill {
+    color: #2563eb;
+    border-style: solid;
+    border-color: rgba(37, 99, 235, 0.35);
+    background: rgba(37, 99, 235, 0.06);
+}
+
+.rh-tr-pill:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.12);
+}
+
+[data-bs-theme="dark"] .rh-tr-pill {
+    color: #93c5fd;
+    border-color: rgba(147, 197, 253, 0.35);
+    background: rgba(147, 197, 253, 0.08);
+}
+
+.rh-tr-pill .spinner-border {
+    width: 12px;
+    height: 12px;
+    border-width: 2px;
+}
+
+.rh-undo-btn {
+    font-weight: 600;
+    text-decoration: none;
+}
