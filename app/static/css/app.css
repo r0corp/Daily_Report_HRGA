@@ -1651,3 +1651,256 @@ summary.rh-group-title::-webkit-details-marker {
     font-weight: 600;
     text-decoration: none;
 }
+
+/* ============================================================
+   PEMILIH KATEGORI (static/js/report.js) - pengganti <select>
+   bawaan: kartu di bawah label (PC), lembar dari bawah (HP).
+   ============================================================ */
+
+.rh-cat-pill span {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rh-cat-caret {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+.rh-picker {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+}
+
+.rh-picker-backdrop {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+}
+
+.rh-picker-panel {
+    position: fixed;
+    width: 300px;
+    max-height: min(380px, calc(100vh - 24px));
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+[data-bs-theme="dark"] .rh-picker-panel {
+    background: #1b1e27;
+    border-color: #2c2f38;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+.rh-picker.is-open .rh-picker-panel {
+    opacity: 1;
+    transform: none;
+}
+
+.rh-picker-head {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 6px 18px;
+    font-size: 16px;
+}
+
+.rh-picker-x {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--bs-secondary-color);
+}
+
+.rh-picker-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 10px 6px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-secondary-color);
+}
+
+[data-bs-theme="dark"] .rh-picker-search {
+    background: #20232c;
+    border-color: #2c2f38;
+}
+
+.rh-picker-search:focus-within {
+    border-color: var(--rh-accent);
+}
+
+.rh-picker-search input {
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--bs-body-color);
+    font-size: 15px;
+}
+
+.rh-picker-list {
+    overflow-y: auto;
+    padding: 4px 6px 8px;
+    overscroll-behavior: contain;
+}
+
+.rh-picker-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--bs-body-color);
+    font-size: 14.5px;
+    text-align: left;
+}
+
+.rh-picker-opt > i:first-child {
+    width: 18px;
+    color: var(--bs-secondary-color);
+}
+
+.rh-picker-opt span {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.rh-picker-opt span small {
+    display: block;
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+}
+
+.rh-picker-opt:hover,
+.rh-picker-opt:focus-visible {
+    outline: none;
+    background: var(--bs-tertiary-bg);
+}
+
+[data-bs-theme="dark"] .rh-picker-opt:hover,
+[data-bs-theme="dark"] .rh-picker-opt:focus-visible {
+    background: #262933;
+}
+
+.rh-picker-opt.is-on {
+    color: var(--rh-accent);
+    font-weight: 600;
+    background: var(--rh-accent-soft);
+}
+
+.rh-picker-opt.is-on > i:first-child {
+    color: var(--rh-accent);
+}
+
+.rh-picker-check {
+    visibility: hidden;
+    color: var(--rh-accent);
+    font-size: 16px;
+}
+
+.rh-picker-opt.is-on .rh-picker-check {
+    visibility: visible;
+}
+
+.rh-picker-auto {
+    margin-bottom: 4px;
+    position: relative;
+}
+
+.rh-picker-auto::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -3px;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.rh-picker-empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--bs-secondary-color);
+    font-size: 14px;
+}
+
+/* HP: lembar dari bawah layar, pilihan lebih besar untuk jempol. */
+.rh-picker.is-sheet .rh-picker-backdrop {
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.rh-picker.is-sheet.is-open .rh-picker-backdrop {
+    opacity: 1;
+}
+
+.rh-picker.is-sheet .rh-picker-panel {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: auto;
+    max-height: 75vh;
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transform: translateY(100%);
+    transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.rh-picker.is-sheet.is-open .rh-picker-panel {
+    transform: none;
+}
+
+.rh-picker.is-sheet .rh-picker-head {
+    display: flex;
+}
+
+.rh-picker.is-sheet .rh-picker-head::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    margin-left: -20px;
+    border-radius: 2px;
+    background: var(--bs-border-color);
+}
+
+.rh-picker.is-sheet .rh-picker-opt {
+    min-height: 50px;
+    font-size: 15.5px;
+    padding: 10px 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rh-picker-panel,
+    .rh-picker-backdrop {
+        transition: none !important;
+    }
+}

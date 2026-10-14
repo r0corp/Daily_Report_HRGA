@@ -102,14 +102,6 @@ function waText() {
     const lines = cur.items.filter(i => i.text.trim()).map((i, k) => `${k + 1}. ${i.text.trim()}`);
     return `Daily Report ${HARI[d.getDay()]}/${pad(d.getDate())} ${BULAN[d.getMonth()]} ${d.getFullYear()} (${P.name}).${st}\n\n${lines.join("\n")}`;
 }
-function catOptions(sel) {
-    let opts = P.categories.slice();
-    if (sel && !opts.includes(sel)) opts.unshift(sel);
-    // Selalu ada pilihan kosong: baris yang belum diisi tidak boleh
-    // tampil seolah sudah berkategori (dulu IT jatuh ke opsi pertama).
-    return `<option value=""${sel ? "" : " selected"}>${CAN_AUTO ? T("Kategori otomatis") : T("Pilih kategori…")}</option>` +
-        opts.map(c => `<option${c === sel ? " selected" : ""}>${esc(c)}</option>`).join("");
-}
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + 2 + "px"; }
 // Tinggi dihitung ulang setelah layout selesai: saat render pertama lebar
 // kolom belum final sehingga scrollHeight bisa ratusan piksel.
@@ -128,10 +120,8 @@ function renderItems() {
         <textarea id="it-${k}" rows="1" class="form-control rh-input" ${ro ? "readonly" : ""}
           placeholder="${k === 0 ? T("Contoh: Cleaning ruang meeting dan toilet") : T("Tulis pekerjaan berikutnya…")}">${esc(it.text)}</textarea>
         <div class="rh-item-meta">
-          <label class="rh-pill rh-cat-pill${it.cat ? "" : " is-empty"}" title="${T("Kategori (ketuk untuk mengganti)")}">
-            <i class="bi bi-tag"></i>
-            <select aria-label="${T("Kategori")}" data-act="cat" ${ro ? "disabled" : ""}>${catOptions(it.cat)}</select>
-          </label>
+          <button type="button" class="rh-pill rh-cat-pill${it.cat ? "" : " is-empty"}" data-act="cat" ${ro ? "disabled" : ""}
+            aria-haspopup="listbox" title="${T("Kategori (ketuk untuk mengganti)")}"><i class="bi bi-tag"></i><span>${esc(catLabel(it))}</span><i class="bi bi-chevron-down rh-cat-caret"></i></button>
           <button type="button" class="rh-pill rh-rutin-pill${it.rutin ? " is-on" : ""}" data-act="rutin" ${ro ? "disabled" : ""}
             aria-pressed="${it.rutin}" title="${T("Tandai sebagai pekerjaan rutin")}"><i class="bi bi-arrow-repeat"></i>${T("Rutin")}</button>
           ${P.translateApi && !ro ? `<button type="button" class="rh-pill rh-tr-pill" data-act="tr" title="${T("Terjemahkan ke Bahasa Inggris")}"><i class="bi bi-translate"></i>EN</button>` : ""}
@@ -283,8 +273,7 @@ $("items").addEventListener("input", e => {
     autosize(e.target);
     if (CAN_AUTO && !it.manual) {
         it.cat = classify(it.text);
-        li.querySelector("[data-act=cat]").value = it.cat;
-        li.querySelector(".rh-cat-pill").classList.toggle("is-empty", !it.cat);
+        setCatPill(li, it);
     }
     if (P.auto && !it.manualRutin) setRutin(li, it, RUTIN.test(it.text));
     markDirty();
@@ -305,14 +294,111 @@ function setRutin(li, it, on) {
     b.classList.toggle("is-on", on);
     b.setAttribute("aria-pressed", on);
 }
-$("items").addEventListener("change", e => {
-    const li = e.target.closest(".rh-item");
-    if (!li || e.target.dataset.act !== "cat") return;
-    const it = cur.items[+li.dataset.k];
-    it.cat = e.target.value; it.manual = true;
-    li.querySelector(".rh-cat-pill").classList.toggle("is-empty", !it.cat);
+// ---------- pemilih kategori (pengganti <select> bawaan browser) ----------
+// PC: kartu kecil di bawah label kategori. HP: lembar dari bawah layar.
+let picker = null, pickerCtx = null;
+const catLabel = it => it.cat || (CAN_AUTO ? T("Kategori otomatis") : T("Pilih kategori…"));
+function setCatPill(li, it) {
+    const b = li.querySelector("[data-act=cat]");
+    if (!b) return;
+    b.querySelector("span").textContent = catLabel(it);
+    b.classList.toggle("is-empty", !it.cat);
+}
+function buildPicker() {
+    picker = document.createElement("div");
+    picker.className = "rh-picker";
+    picker.hidden = true;
+    picker.innerHTML = `
+      <div class="rh-picker-backdrop" data-close></div>
+      <div class="rh-picker-panel" role="dialog" aria-modal="true" aria-label="${T("Pilih kategori")}">
+        <div class="rh-picker-head">
+          <strong>${T("Pilih kategori")}</strong>
+          <button type="button" class="rh-picker-x" data-close aria-label="${T("Tutup")}"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <label class="rh-picker-search"><i class="bi bi-search"></i>
+          <input type="search" placeholder="${T("Cari kategori…")}" autocomplete="off" aria-label="${T("Cari kategori…")}"></label>
+        <div class="rh-picker-list" role="listbox"></div>
+      </div>`;
+    document.body.appendChild(picker);
+    picker.addEventListener("click", e => {
+        if (e.target.closest("[data-close]")) return closePicker();
+        const opt = e.target.closest(".rh-picker-opt");
+        if (opt) chooseCat(opt.dataset.value, opt.dataset.auto === "1");
+    });
+    picker.querySelector("input").addEventListener("input", renderPickerList);
+    picker.addEventListener("keydown", e => {
+        if (e.key === "Escape") { e.preventDefault(); closePicker(); return; }
+        const opts = [...picker.querySelectorAll(".rh-picker-opt")];
+        if (e.key === "Enter" && e.target.tagName === "INPUT" && opts[0]) { e.preventDefault(); opts[0].click(); return; }
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            const i = opts.indexOf(document.activeElement);
+            const next = e.key === "ArrowDown" ? Math.min(opts.length - 1, i + 1) : Math.max(0, i - 1);
+            if (opts[next]) opts[next].focus();
+        }
+    });
+    window.addEventListener("resize", () => { if (pickerCtx) closePicker(); });
+    window.addEventListener("scroll", () => { if (pickerCtx && !picker.classList.contains("is-sheet")) closePicker(); }, { passive: true });
+}
+function renderPickerList() {
+    const it = pickerCtx.it;
+    const q = picker.querySelector("input").value.trim().toLowerCase();
+    let opts = P.categories.slice();
+    if (it.cat && !opts.includes(it.cat)) opts.unshift(it.cat);
+    opts = opts.filter(c => !q || c.toLowerCase().includes(q));
+    const autoOn = CAN_AUTO ? !it.manual : !it.cat;
+    const guess = CAN_AUTO && it.text.trim() ? classify(it.text) : "";
+    const check = '<i class="bi bi-check-lg rh-picker-check"></i>';
+    let html = q ? "" : `<button type="button" class="rh-picker-opt rh-picker-auto${autoOn ? " is-on" : ""}" data-value="" data-auto="1" role="option" aria-selected="${autoOn}">
+        <i class="bi ${CAN_AUTO ? "bi-magic" : "bi-dash-circle"}"></i>
+        <span>${CAN_AUTO ? T("Kategori otomatis") : T("Tanpa kategori")}${guess ? `<small>${esc(guess)}</small>` : ""}</span>${check}</button>`;
+    html += opts.map(c => {
+        const on = !autoOn && it.cat === c;
+        return `<button type="button" class="rh-picker-opt${on ? " is-on" : ""}" data-value="${esc(c)}" role="option" aria-selected="${on}">
+            <i class="bi bi-tag"></i><span>${esc(c)}</span>${check}</button>`;
+    }).join("");
+    if (!opts.length) html += `<div class="rh-picker-empty">${T("Kategori tidak ditemukan")}</div>`;
+    picker.querySelector(".rh-picker-list").innerHTML = html;
+}
+function openCatPicker(li, k, btn) {
+    if (!picker) buildPicker();
+    pickerCtx = { li, k, it: cur.items[k], btn };
+    const input = picker.querySelector("input");
+    input.value = "";
+    picker.querySelector(".rh-picker-search").hidden = P.categories.length <= 8;
+    renderPickerList();
+    const sheet = window.innerWidth < 576;
+    picker.classList.toggle("is-sheet", sheet);
+    picker.hidden = false;
+    const panel = picker.querySelector(".rh-picker-panel");
+    panel.style.top = panel.style.left = "";
+    if (!sheet) {
+        const r = btn.getBoundingClientRect(), w = panel.offsetWidth, h = panel.offsetHeight;
+        const below = r.bottom + 6 + h <= window.innerHeight - 8;
+        panel.style.top = (below ? r.bottom + 6 : Math.max(8, r.top - h - 6)) + "px";
+        panel.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + "px";
+    }
+    requestAnimationFrame(() => picker.classList.add("is-open"));
+    const first = picker.querySelector(".rh-picker-opt.is-on") || picker.querySelector(".rh-picker-opt");
+    if (!sheet && !picker.querySelector(".rh-picker-search").hidden) input.focus();
+    else if (first) first.focus();
+}
+function closePicker() {
+    if (!picker || !pickerCtx) return;
+    const btn = pickerCtx.btn;
+    pickerCtx = null;
+    picker.classList.remove("is-open");
+    picker.hidden = true;
+    if (btn && document.body.contains(btn)) btn.focus();
+}
+function chooseCat(value, auto) {
+    const { li, it } = pickerCtx;
+    if (auto) { it.manual = false; it.cat = CAN_AUTO ? classify(it.text) : ""; }
+    else { it.cat = value; it.manual = true; }
+    setCatPill(li, it);
+    closePicker();
     markDirty();
-});
+}
 $("items").addEventListener("click", e => {
     const b = e.target.closest("button");
     if (!b) return;
@@ -324,6 +410,7 @@ $("items").addEventListener("click", e => {
     }
     if (b.dataset.act === "rutin") { it.manualRutin = true; setRutin(li, it, !it.rutin); markDirty(); }
     if (b.dataset.act === "tr") translateItems([k], b);
+    if (b.dataset.act === "cat") openCatPicker(li, k, b);
 });
 
 // ---------- terjemah Indonesia -> English (tim IT, lewat DeepL di server) ----------
