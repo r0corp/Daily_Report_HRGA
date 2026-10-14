@@ -3,6 +3,7 @@ from flask_login import current_user
 
 from .. import db
 from ..constants import DEFAULT_CATEGORIES, DEFAULT_QUICK, ROLES, TEAMS
+from ..i18n import _
 from ..helpers import admin_required, spv_required
 from ..models import Report, User, set_setting, team_categories, team_quick
 from .auth import validate_secret
@@ -35,10 +36,10 @@ def user_form(user_id=None):
         secret = request.form.get("secret", "").strip()
 
         if not name or team not in TEAMS or role not in ROLES:
-            flash("Nama, tim, dan peran wajib diisi.", "danger")
+            flash(_("Nama, tim, dan peran wajib diisi."), "danger")
         elif User.query.filter(db.func.lower(User.name) == name.lower(),
                                User.id != (user.id if user else 0)).first():
-            flash("Nama itu sudah dipakai user lain. Tambahkan inisial supaya beda.", "danger")
+            flash(_("Nama itu sudah dipakai user lain. Tambahkan inisial supaya beda."), "danger")
         else:
             is_new = user is None
             if is_new:
@@ -47,7 +48,7 @@ def user_form(user_id=None):
                 user.name, user.team, user.role = name, team, role
 
             if user.id == current_user.id and role != "admin":
-                flash("Anda tidak bisa menurunkan peran akun Anda sendiri.", "danger")
+                flash(_("Anda tidak bisa menurunkan peran akun Anda sendiri."), "danger")
                 return redirect(url_for("admin.user_form", user_id=user.id))
 
             if secret or is_new:
@@ -63,7 +64,7 @@ def user_form(user_id=None):
 
             db.session.add(user)
             db.session.commit()
-            flash(f"User {user.name} {'ditambahkan' if is_new else 'disimpan'}.", "success")
+            flash(_("User {name} ditambahkan." if is_new else "User {name} disimpan.", name=user.name), "success")
             return redirect(url_for("admin.users"))
 
     return render_template("admin_user_form.html", user=user, form=request.form, roles=ROLES)
@@ -74,11 +75,11 @@ def user_form(user_id=None):
 def toggle_active(user_id):
     user = db.session.get(User, user_id) or abort(404)
     if user.id == current_user.id:
-        flash("Anda tidak bisa menonaktifkan akun Anda sendiri.", "danger")
+        flash(_("Anda tidak bisa menonaktifkan akun Anda sendiri."), "danger")
     else:
         user.active = not user.active
         db.session.commit()
-        flash(f"{user.name} {'diaktifkan' if user.active else 'dinonaktifkan'}.", "success")
+        flash(_("{name} diaktifkan." if user.active else "{name} dinonaktifkan.", name=user.name), "success")
     return redirect(url_for("admin.users"))
 
 
@@ -89,7 +90,7 @@ def unlock(user_id):
     user.failed_logins = 0
     user.locked_until = None
     db.session.commit()
-    flash(f"Kunci login {user.name} dibuka.", "success")
+    flash(_("Kunci login {name} dibuka.", name=user.name), "success")
     return redirect(url_for("admin.users"))
 
 
@@ -104,14 +105,14 @@ def categories():
         if request.form.get("reset"):
             set_setting("categories:" + team, DEFAULT_CATEGORIES.get(team, ["Lainnya"]))
             set_setting("quick:" + team, DEFAULT_QUICK.get(team, []))
-            flash(f"Kategori {team} dikembalikan ke bawaan.", "info")
+            flash(_("Kategori {team} dikembalikan ke bawaan.", team=team), "info")
         else:
             cats = _lines(request.form.get("categories", ""), 100)
             if "Lainnya" not in cats:
                 cats.append("Lainnya")
             set_setting("categories:" + team, cats)
             set_setting("quick:" + team, _lines(request.form.get("quick", ""), 1000))
-            flash(f"Kategori dan pekerjaan rutin {team} disimpan.", "success")
+            flash(_("Kategori dan pekerjaan rutin {team} disimpan.", team=team), "success")
         db.session.commit()
         return redirect(url_for("admin.categories", tim=team))
 

@@ -58,7 +58,19 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const pad = n => String(n).padStart(2, "0");
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const parseISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
-const longDate = s => { const d = parseISO(s); return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`; };
+// Terjemahan dari server (P.i18n kosong = Bahasa Indonesia). Placeholder {n}.
+const T = (s, vars) => {
+    let r = (vars && vars.n === 1 && P.i18n && P.i18n._one && P.i18n._one[s]) || (P.i18n && P.i18n[s]) || s;
+    if (vars) for (const k in vars) r = r.split("{" + k + "}").join(vars[k]);
+    return r;
+};
+const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+// Tanggal tampilan ikut bahasa; teks WhatsApp (waText) tetap format Indonesia.
+const longDate = s => {
+    const d = parseISO(s), en = P.lang === "en";
+    return `${(en ? DAYS_EN : HARI)[d.getDay()]}, ${d.getDate()} ${(en ? MONTHS_EN : BULAN)[d.getMonth()]} ${d.getFullYear()}`;
+};
 const ls = {
     get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
@@ -95,7 +107,7 @@ function catOptions(sel) {
     if (sel && !opts.includes(sel)) opts.unshift(sel);
     // Selalu ada pilihan kosong: baris yang belum diisi tidak boleh
     // tampil seolah sudah berkategori (dulu IT jatuh ke opsi pertama).
-    return `<option value=""${sel ? "" : " selected"}>${CAN_AUTO ? "Kategori otomatis" : "Pilih kategori…"}</option>` +
+    return `<option value=""${sel ? "" : " selected"}>${CAN_AUTO ? T("Kategori otomatis") : T("Pilih kategori…")}</option>` +
         opts.map(c => `<option${c === sel ? " selected" : ""}>${esc(c)}</option>`).join("");
 }
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + 2 + "px"; }
@@ -114,17 +126,17 @@ function renderItems() {
       <span class="rh-num">${k + 1}</span>
       <div class="rh-item-main">
         <textarea id="it-${k}" rows="1" class="form-control rh-input" ${ro ? "readonly" : ""}
-          placeholder="${k === 0 ? "Contoh: Cleaning ruang meeting dan toilet" : "Tulis pekerjaan berikutnya…"}">${esc(it.text)}</textarea>
+          placeholder="${k === 0 ? T("Contoh: Cleaning ruang meeting dan toilet") : T("Tulis pekerjaan berikutnya…")}">${esc(it.text)}</textarea>
         <div class="rh-item-meta">
-          <label class="rh-pill rh-cat-pill${it.cat ? "" : " is-empty"}" title="Kategori (ketuk untuk mengganti)">
+          <label class="rh-pill rh-cat-pill${it.cat ? "" : " is-empty"}" title="${T("Kategori (ketuk untuk mengganti)")}">
             <i class="bi bi-tag"></i>
-            <select aria-label="Kategori" data-act="cat" ${ro ? "disabled" : ""}>${catOptions(it.cat)}</select>
+            <select aria-label="${T("Kategori")}" data-act="cat" ${ro ? "disabled" : ""}>${catOptions(it.cat)}</select>
           </label>
           <button type="button" class="rh-pill rh-rutin-pill${it.rutin ? " is-on" : ""}" data-act="rutin" ${ro ? "disabled" : ""}
-            aria-pressed="${it.rutin}" title="Tandai sebagai pekerjaan rutin"><i class="bi bi-arrow-repeat"></i>Rutin</button>
+            aria-pressed="${it.rutin}" title="${T("Tandai sebagai pekerjaan rutin")}"><i class="bi bi-arrow-repeat"></i>${T("Rutin")}</button>
         </div>
       </div>
-      ${ro ? "" : `<button type="button" class="rh-del" data-act="del" title="Hapus pekerjaan ini" aria-label="Hapus pekerjaan ${k + 1}"><i class="bi bi-x-lg"></i></button>`}
+      ${ro ? "" : `<button type="button" class="rh-del" data-act="del" title="${T("Hapus pekerjaan ini")}" aria-label="${T("Hapus pekerjaan {n}", { n: k + 1 })}"><i class="bi bi-x-lg"></i></button>`}
     </li>`).join("");
     resizeAll();
     $("btnAdd").disabled = ro;
@@ -136,8 +148,8 @@ function renderItems() {
 
 function updateCounts() {
     const n = cur.items.filter(i => i.text.trim()).length;
-    $("itemsTitle").textContent = n ? `Pekerjaan hari ini (${n})` : "Pekerjaan hari ini";
-    $("sendCount").textContent = cur.day_status && !n ? cur.day_status : `${n} pekerjaan`;
+    $("itemsTitle").textContent = n ? T("Pekerjaan hari ini ({n})", { n }) : T("Pekerjaan hari ini");
+    $("sendCount").textContent = cur.day_status && !n ? T(cur.day_status) : T("{n} pekerjaan", { n });
     $("waText").textContent = waText();
     // Tombol "mulai cepat" hanya saat laporan masih kosong.
     $("startBox").hidden = !cur.editable || n > 0;
@@ -149,12 +161,12 @@ function renderState() {
     const hasContent = cur.items.some(i => i.text.trim()) || cur.day_status;
     const sent = cur.state === "sent" && !cur.edited_after_submit;
     const canSend = cur.editable && hasContent && !sent;
-    let label = "Kirim ke Spv", icon = "bi-send-fill", info = "Belum dikirim";
-    if (cur.state === "sent" && cur.edited_after_submit) { label = "Kirim ulang"; info = "Ada perubahan, kirim ulang"; }
-    else if (sent) { label = "Terkirim"; icon = "bi-check2-circle"; info = `Dikirim ${esc(cur.submitted_at || "")}`; }
-    else if (cur.state === "revision") { label = "Kirim perbaikan"; info = "Spv minta perbaikan"; }
-    else if (cur.state === "checked") { label = "Sudah dicek"; icon = "bi-check2-all"; info = "Sudah dicek Spv"; }
-    else if (!hasContent) info = "Tulis minimal satu pekerjaan";
+    let label = T("Kirim ke Spv"), icon = "bi-send-fill", info = T("Belum dikirim");
+    if (cur.state === "sent" && cur.edited_after_submit) { label = T("Kirim ulang"); info = T("Ada perubahan, kirim ulang"); }
+    else if (sent) { label = T("Terkirim"); icon = "bi-check2-circle"; info = T("Dikirim {t}", { t: esc(cur.submitted_at || "") }); }
+    else if (cur.state === "revision") { label = T("Kirim perbaikan"); info = T("Spv minta perbaikan"); }
+    else if (cur.state === "checked") { label = T("Sudah dicek"); icon = "bi-check2-all"; info = T("Sudah dicek Spv"); }
+    else if (!hasContent) info = T("Tulis minimal satu pekerjaan");
     $("btnSend").disabled = !canSend;
     $("btnSend").innerHTML = `<i class="bi ${icon}"></i><span>${label}</span>`;
     $("btnSend").classList.toggle("is-done", sent || cur.state === "checked");
@@ -162,16 +174,16 @@ function renderState() {
 
     const who = cur.reviewed_by ? ` (${esc(cur.reviewed_by)})` : "";
     let box = "";
-    if (cur.state === "revision") box = `<div class="rh-notice rh-notice-warn"><i class="bi bi-arrow-counterclockwise"></i><div><strong>Spv minta perbaikan${who}</strong><p>${esc(cur.spv_note || "")}</p><small>Perbaiki daftar di bawah, lalu tekan <b>Kirim perbaikan</b>.</small></div></div>`;
-    else if (cur.state === "checked") box = `<div class="rh-notice rh-notice-ok"><i class="bi bi-check2-all"></i><div><strong>Laporan sudah dicek Spv${who}</strong>${cur.spv_note ? `<p>${esc(cur.spv_note)}</p>` : "<p>Terima kasih, tidak ada yang perlu diubah.</p>"}</div></div>`;
-    else if (sent) box = `<div class="rh-notice rh-notice-sent"><i class="bi bi-send-check"></i><div><strong>Laporan terkirim ke Spv</strong><p>Dikirim ${esc(cur.submitted_at || "")}. Masih bisa diubah; kalau diubah, tekan Kirim ulang.</p></div></div>`;
+    if (cur.state === "revision") box = `<div class="rh-notice rh-notice-warn"><i class="bi bi-arrow-counterclockwise"></i><div><strong>${T("Spv minta perbaikan")}${who}</strong><p>${esc(cur.spv_note || "")}</p><small>${T("Perbaiki daftar di bawah, lalu tekan <b>Kirim perbaikan</b>.")}</small></div></div>`;
+    else if (cur.state === "checked") box = `<div class="rh-notice rh-notice-ok"><i class="bi bi-check2-all"></i><div><strong>${T("Laporan sudah dicek Spv")}${who}</strong>${cur.spv_note ? `<p>${esc(cur.spv_note)}</p>` : `<p>${T("Terima kasih, tidak ada yang perlu diubah.")}</p>`}</div></div>`;
+    else if (sent) box = `<div class="rh-notice rh-notice-sent"><i class="bi bi-send-check"></i><div><strong>${T("Laporan terkirim ke Spv")}</strong><p>${T("Dikirim {t}. Masih bisa diubah; kalau diubah, tekan Kirim ulang.", { t: esc(cur.submitted_at || "") })}</p></div></div>`;
     $("stateBox").innerHTML = box;
 }
 
 function renderDate() {
     const d = parseISO(cur.date), today = parseISO(P.today);
     const diff = Math.round((today - d) / 86400000);
-    $("dateLabel").textContent = diff === 0 ? "Hari ini" : diff === 1 ? "Kemarin" : `${diff} hari lalu`;
+    $("dateLabel").textContent = diff === 0 ? T("Hari ini") : diff === 1 ? T("Kemarin") : T("{n} hari lalu", { n: diff });
     $("dateLabel").classList.toggle("is-past", diff > 0);
     $("dateText").textContent = longDate(cur.date);
     $("btnNext").disabled = diff <= 0;
@@ -189,7 +201,7 @@ async function load(date) {
     await saving;
     let data;
     try { data = await api("GET", "/api/report/" + date); }
-    catch (e) { setSaveState("Gagal memuat report: " + e.message, true); return; }
+    catch (e) { setSaveState(T("Gagal memuat report: {e}", { e: e.message }), true); return; }
     prevRutin = data.previous_rutin || [];
     prevAll = data.previous_items || [];
     prevDate = data.previous_date;
@@ -197,15 +209,15 @@ async function load(date) {
     const draft = ls.get("rh-draft:" + date);
     if (draft && cur.editable && draft.savedAt && (!data.exists || draft.unsaved)) {
         cur.items = draft.items; cur.day_status = draft.day_status; dirty = true;
-        setSaveState("Memulihkan isian yang belum tersimpan…");
+        setSaveState(T("Memulihkan isian yang belum tersimpan…"));
         scheduleSave(200);
     } else {
         dirty = false;
-        setSaveState(cur.editable ? (data.exists ? "Tersimpan" : "Tersimpan otomatis saat mengetik") : "Hanya bisa dibaca");
+        setSaveState(cur.editable ? (data.exists ? T("Tersimpan") : T("Tersimpan otomatis saat mengetik")) : T("Hanya bisa dibaca"));
     }
     if (!cur.items.length && cur.editable) cur.items.push(blank());
     if (fp) fp.setDate(date, false);
-    $("copyAllInfo").textContent = prevAll.length ? `${prevAll.length} pekerjaan dari ${prevDate}, tinggal diubah` : "";
+    $("copyAllInfo").textContent = prevAll.length ? T("{n} pekerjaan dari {d}, tinggal diubah", { n: prevAll.length, d: prevDate }) : "";
     history.replaceState(null, "", "?tanggal=" + date);
     renderDate();
     renderQuick();
@@ -215,7 +227,7 @@ async function load(date) {
 function markDirty() {
     dirty = true;
     updateCounts();
-    setSaveState("Belum tersimpan…");
+    setSaveState(T("Belum tersimpan…"));
     ls.set("rh-draft:" + cur.date, { items: cur.items, day_status: cur.day_status, savedAt: Date.now(), unsaved: true });
     scheduleSave(1200);
 }
@@ -231,11 +243,11 @@ function save() {
                 Object.assign(cur, { state: data.state, editable: data.editable, submitted_at: data.submitted_at,
                                      edited_after_submit: data.edited_after_submit, exists: data.exists });
                 dirty = false;
-                setSaveState("Tersimpan");
+                setSaveState(T("Tersimpan"));
                 renderState();
             }
         } catch (e) {
-            setSaveState("Gagal menyimpan (" + e.message + "). Isian aman di browser ini, coba lagi sebentar.", true);
+            setSaveState(T("Gagal menyimpan ({e}). Isian aman di browser ini, coba lagi sebentar.", { e: e.message }), true);
         }
     });
     return saving;
@@ -250,12 +262,12 @@ async function send() {
         const data = await api("POST", `/api/report/${cur.date}/send`);
         Object.assign(cur, { state: data.state, submitted_at: data.submitted_at, edited_after_submit: false, editable: data.editable });
         renderState();
-        setSaveState("Terkirim ke Spv");
+        setSaveState(T("Terkirim ke Spv"));
         window.scrollTo({ top: 0, behavior: "smooth" });
-        if (window.rhNotify) window.rhNotify.notify({ type: "sent", title: "Laporan terkirim", text: "Spv akan memeriksa laporan Anda." });
+        if (window.rhNotify) window.rhNotify.notify({ type: "sent", title: T("Laporan terkirim"), text: T("Spv akan memeriksa laporan Anda.") });
     } catch (e) {
         renderState();
-        $("stateBox").innerHTML = `<div class="rh-notice rh-notice-warn"><i class="bi bi-exclamation-triangle"></i><div><strong>Belum terkirim</strong><p>${esc(e.message)}</p></div></div>`;
+        $("stateBox").innerHTML = `<div class="rh-notice rh-notice-warn"><i class="bi bi-exclamation-triangle"></i><div><strong>${T("Belum terkirim")}</strong><p>${esc(e.message)}</p></div></div>`;
     }
 }
 
@@ -377,7 +389,7 @@ function parseReport(text) {
 
 function pastePreview() {
     const list = parseReport($("pasteText").value);
-    $("pasteCount").textContent = list.length ? `${list.length} pekerjaan akan ditambahkan` : "Pratinjau";
+    $("pasteCount").textContent = list.length ? T("{n} pekerjaan akan ditambahkan", { n: list.length }) : T("Pratinjau");
     $("pastePreview").innerHTML = list.map(t => {
         const c = classify(t);
         return `<li class="text-pre">${esc(t)}${c ? ` <span class="rh-badge">${esc(c)}</span>` : ""}</li>`;
@@ -441,11 +453,11 @@ async function copyText(text) {
 $("btnCopy").onclick = async () => {
     const b = $("btnCopy"), h = b.innerHTML;
     if (await copyText(waText())) {
-        b.innerHTML = '<i class="bi bi-check2 me-1"></i>Tersalin, tinggal tempel di WhatsApp';
+        b.innerHTML = '<i class="bi bi-check2 me-1"></i>' + T("Tersalin, tinggal tempel di WhatsApp");
     } else {
         const r = document.createRange(); r.selectNodeContents($("waText"));
         const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-        b.textContent = "Teks sudah dipilih, tekan lama lalu Salin";
+        b.textContent = T("Teks sudah dipilih, tekan lama lalu Salin");
     }
     setTimeout(() => b.innerHTML = h, 2500);
 };

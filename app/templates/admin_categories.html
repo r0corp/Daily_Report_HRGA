@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Kategori & Rutin{% endblock %}
-{% block heading %}Kategori & Pekerjaan Rutin{% endblock %}
+{% block title %}{{ _('Kategori & Rutin') }}{% endblock %}
+{% block heading %}{{ _('Kategori & Pekerjaan Rutin') }}{% endblock %}
 {% block heading_icon %}bi-tags{% endblock %}
-{% block heading_subtitle %}Pilihan kategori dan tombol tambah cepat untuk tiap tim{% endblock %}
+{% block heading_subtitle %}{{ _('Pilihan kategori dan tombol tambah cepat untuk tiap tim') }}{% endblock %}
 {% block content %}
 <ul class="nav nav-tabs mb-3">
     {% for t in TEAMS %}
-    <li class="nav-item"><a class="nav-link {{ 'active' if t == team }}" href="{{ url_for('admin.categories', tim=t) }}">{{ t }}</a></li>
+    <li class="nav-item"><a class="nav-link {{ 'active' if t == team }}" href="{{ url_for('admin.categories', tim=t) }}">{{ _(t) }}</a></li>
     {% endfor %}
 </ul>
 
@@ -16,27 +16,27 @@
     <div class="row g-3">
         <div class="col-lg-5">
             <div class="card h-100">
-                <div class="card-header"><i class="bi bi-tags me-2"></i>Kategori {{ team }}</div>
+                <div class="card-header"><i class="bi bi-tags me-2"></i>{{ _('Kategori {team}', team=_(team)) }}</div>
                 <div class="card-body">
                     <textarea name="categories" class="form-control" rows="12">{{ categories|join('\n') }}</textarea>
-                    <div class="form-text">Satu kategori per baris. "Lainnya" selalu ditambahkan.
-                        {% if team == 'IT' %}<br><strong>IT:</strong> kategori dipilih otomatis dari kata kunci; mengubah nama di sini tidak mengubah aturan otomatisnya.{% endif %}</div>
+                    <div class="form-text">{{ _('Satu kategori per baris. "Lainnya" selalu ditambahkan.') }}
+                        {% if team == 'IT' %}<br><strong>IT:</strong> {{ _('kategori dipilih otomatis dari kata kunci; mengubah nama di sini tidak mengubah aturan otomatisnya.') }}{% endif %}</div>
                 </div>
             </div>
         </div>
         <div class="col-lg-7">
             <div class="card h-100">
-                <div class="card-header"><i class="bi bi-lightning-charge me-2"></i>Pekerjaan rutin (tombol tambah cepat)</div>
+                <div class="card-header"><i class="bi bi-lightning-charge me-2"></i>{{ _('Pekerjaan rutin (tombol tambah cepat)') }}</div>
                 <div class="card-body">
                     <textarea name="quick" class="form-control" rows="12">{{ quick|join('\n') }}</textarea>
-                    <div class="form-text">Satu pekerjaan per baris. Muncul sebagai tombol di halaman Tulis Report dan otomatis ditandai Rutin.</div>
+                    <div class="form-text">{{ _('Satu pekerjaan per baris. Muncul sebagai tombol di halaman Tulis Report dan otomatis ditandai Rutin.') }}</div>
                 </div>
             </div>
         </div>
     </div>
     <div class="d-flex gap-2 justify-content-end mt-3">
-        <button class="btn btn-outline-secondary" name="reset" value="1"><i class="bi bi-arrow-counterclockwise me-1"></i>Kembalikan bawaan</button>
-        <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Simpan {{ team }}</button>
+        <button class="btn btn-outline-secondary" name="reset" value="1"><i class="bi bi-arrow-counterclockwise me-1"></i>{{ _('Kembalikan bawaan') }}</button>
+        <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ _('Simpan {team}', team=_(team)) }}</button>
     </div>
 </form>
 {% endblock %}

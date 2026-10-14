@@ -50,7 +50,8 @@ class User(UserMixin, db.Model):
 
     @property
     def role_label(self):
-        return ROLES.get(self.role, self.role)
+        from .i18n import _
+        return _(ROLES.get(self.role, self.role))
 
     @property
     def initials(self):
@@ -104,7 +105,8 @@ class Report(db.Model):
 
     @property
     def state_label(self):
-        return STATES.get(self.state, (self.state, "secondary"))[0]
+        from .i18n import _
+        return _(STATES.get(self.state, (self.state, "secondary"))[0])
 
     @property
     def state_color(self):

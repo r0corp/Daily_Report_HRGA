@@ -31,10 +31,13 @@ def create_app(config_object="config.Config"):
 
     db.init_app(app)
 
+    from .i18n import LANGS, _, get_lang
+
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Silakan login terlebih dahulu."
     login_manager.login_message_category = "warning"
+    login_manager.localize_callback = _
 
     csrf.init_app(app)
 
@@ -46,10 +49,12 @@ def create_app(config_object="config.Config"):
 
     from .constants import STATES, TEAMS
 
+    app.jinja_env.globals["_"] = _
+
     @app.context_processor
     def template_globals():
         return {"now": datetime.now, "TEAMS": TEAMS, "STATES": STATES,
-                "timedelta1": timedelta(days=1)}
+                "timedelta1": timedelta(days=1), "lang": get_lang(), "LANGS": LANGS}
 
     @app.template_filter("tanggal")
     def tanggal(value, with_day=True):
@@ -58,18 +63,18 @@ def create_app(config_object="config.Config"):
 
     @app.template_filter("hari")
     def hari(value):
-        from .helpers import HARI
-        return HARI[value.weekday()] if value else ""
+        from .helpers import day_name
+        return day_name(value) if value else ""
 
     @app.errorhandler(403)
     def forbidden(_e):
         return render_template("error.html", code=403,
-                               message="Anda tidak punya akses ke halaman ini."), 403
+                               message=_("Anda tidak punya akses ke halaman ini.")), 403
 
     @app.errorhandler(404)
     def not_found(_e):
         return render_template("error.html", code=404,
-                               message="Halaman atau data tidak ditemukan."), 404
+                               message=_("Halaman atau data tidak ditemukan.")), 404
 
     with app.app_context():
         db.create_all()

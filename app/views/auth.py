@@ -7,6 +7,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from .. import db
 from ..constants import TEAMS
+from ..i18n import COOKIE, LANGS, _
 from ..models import User
 
 
@@ -52,8 +53,8 @@ def login():
 
         if user and user.locked_until and user.locked_until > now:
             minutes = max(1, int((user.locked_until - now).total_seconds() // 60) + 1)
-            flash(f"Terlalu banyak salah PIN/password. Coba lagi dalam {minutes} menit "
-                  "atau minta IT mereset.", "danger")
+            msg = "Terlalu banyak salah PIN/password. Coba lagi dalam {minutes} menit atau minta IT mereset."
+            flash(_(msg, minutes=minutes), "danger")
             return render_template("login.html", groups=_login_users(), selected=selected), 429
 
         if user and user.active and user.check_secret(secret):
@@ -73,7 +74,7 @@ def login():
                 user.failed_logins = 0
             db.session.commit()
 
-        flash("Nama atau PIN/password salah.", "danger")
+        flash(_("Nama atau PIN/password salah."), "danger")
 
     return render_template("login.html", groups=_login_users(), selected=selected)
 
@@ -97,15 +98,15 @@ def change_secret():
         error = validate_secret(current_user, new)
 
         if not current_user.check_secret(old):
-            flash("PIN/password lama salah.", "danger")
+            flash(_("PIN/password lama salah."), "danger")
         elif error:
             flash(error, "danger")
         elif new != confirm:
-            flash("Konfirmasi tidak sama.", "danger")
+            flash(_("Konfirmasi tidak sama."), "danger")
         else:
             current_user.set_secret(new)
             db.session.commit()
-            flash("Berhasil diganti.", "success")
+            flash(_("Berhasil diganti."), "success")
             return redirect(_home())
 
     return render_template("change_secret.html")
@@ -115,10 +116,21 @@ def validate_secret(user, secret):
     """Pesan error, atau None kalau valid."""
     if user.uses_pin:
         if not (secret.isdigit() and 4 <= len(secret) <= 6):
-            return "PIN harus 4-6 angka."
+            return _("PIN harus 4-6 angka.")
     elif len(secret) < 8:
-        return "Password minimal 8 karakter."
+        return _("Password minimal 8 karakter.")
     return None
+
+
+@bp.route("/bahasa/<code>")
+def set_lang(code):
+    """Simpan pilihan bahasa di cookie perangkat ini (1 tahun)."""
+    target = _safe_next(request.args.get("next")) or _safe_next(
+        (request.referrer or "").replace(request.host_url.rstrip("/"), "", 1)) or url_for("auth.index")
+    resp = redirect(target)
+    if code in LANGS:
+        resp.set_cookie(COOKIE, code, max_age=365 * 24 * 3600, samesite="Lax", httponly=True)
+    return resp
 
 
 @bp.route("/")

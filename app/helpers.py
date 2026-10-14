@@ -8,15 +8,30 @@ from flask_login import current_user, login_required
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli",
          "Agustus", "September", "Oktober", "November", "Desember"]
+DAYS_EN = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July",
+             "August", "September", "October", "November", "December"]
+
+
+def _english():
+    from .i18n import get_lang
+    return get_lang() == "en"
+
+
+def day_name(value):
+    return (DAYS_EN if _english() else HARI)[value.weekday()]
 
 
 def format_date(value, with_day=True):
+    """Tanggal panjang sesuai bahasa aktif: 'Senin, 12 Oktober 2026' /
+    'Monday, 12 October 2026'."""
     if not value:
         return ""
     if isinstance(value, datetime):
         value = value.date()
-    text = f"{value.day} {BULAN[value.month - 1]} {value.year}"
-    return f"{HARI[value.weekday()]}, {text}" if with_day else text
+    months = MONTHS_EN if _english() else BULAN
+    text = f"{value.day} {months[value.month - 1]} {value.year}"
+    return f"{day_name(value)}, {text}" if with_day else text
 
 
 def parse_date(text, default=None):

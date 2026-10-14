@@ -88,3 +88,13 @@ salin punya cadangan untuk `http`. Di project APK wajib:
 Batasan: hanya jalan di jaringan kantor (server 192.168.x.x); notifikasi hanya saat aplikasi
 terbuka (polling `/api/notif` tiap 30 detik) - untuk notifikasi saat aplikasi tertutup perlu
 push notification (mis. Firebase Cloud Messaging); PIN masih lewat `http`.
+
+## Bahasa (Indonesia / English)
+
+Tombol bahasa ada di navbar (ikon terjemah) dan di halaman login (ID | EN); pilihan disimpan
+di cookie per perangkat selama 1 tahun, bawaan Bahasa Indonesia. Teks sumber di kode ditulis
+dalam Bahasa Indonesia dan dibungkus `_("...")` (Python/template) atau `T("...")` (report.js);
+terjemahan English ada di `app/i18n_en.py` (`EN_ONE` untuk bentuk tunggal "1 item").
+Setelah menambah teks baru, jalankan `venv\Scripts\python.exe tools\i18n_check.py` untuk
+melihat teks yang belum diterjemahkan. Data tidak diterjemahkan: nama kategori, isi laporan,
+dan format teks WhatsApp ("Daily Report Senin/...").

@@ -1,17 +1,17 @@
 {% macro state_badge(report) -%}
 {%- if not report -%}
-<span class="badge text-bg-light border text-secondary"><i class="bi bi-dash-circle me-1"></i>Belum ada</span>
+<span class="badge text-bg-light border text-secondary"><i class="bi bi-dash-circle me-1"></i>{{ _('Belum ada') }}</span>
 {%- else -%}
 {%- set icons = {'draft': 'bi-pencil', 'sent': 'bi-send-check', 'revision': 'bi-arrow-counterclockwise', 'checked': 'bi-check2-all'} -%}
 <span class="badge rh-state rh-state-{{ report.state }}"><i class="bi {{ icons.get(report.state, 'bi-circle') }} me-1"></i>{{ report.state_label }}</span>
-{%- if report.edited_after_submit %} <span class="badge text-bg-warning" title="Diubah staf setelah dikirim"><i class="bi bi-pencil-fill"></i> diubah</span>{% endif -%}
+{%- if report.edited_after_submit %} <span class="badge text-bg-warning" title="{{ _('Diubah staf setelah dikirim') }}"><i class="bi bi-pencil-fill"></i> {{ _('diubah') }}</span>{% endif -%}
 {%- endif -%}
 {%- endmacro %}
 
 {% macro item_list(items, highlight='') -%}
 <ol class="rh-day-items">
     {% for it in items %}
-    <li>{{ it.text.split('\n')[0] }}{% if '\n' in it.text %} <span class="text-secondary small">(+rincian)</span>{% endif %}
+    <li>{{ it.text.split('\n')[0] }}{% if '\n' in it.text %} <span class="text-secondary small">{{ _('(+rincian)') }}</span>{% endif %}
         <span class="rh-badge{{ ' rh-badge-rutin' if it.rutin }}">{{ it.cat }}</span></li>
     {% endfor %}
 </ol>

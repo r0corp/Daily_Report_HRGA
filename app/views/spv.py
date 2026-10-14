@@ -11,6 +11,7 @@ from .. import db
 from ..constants import (
     STATE_CHECKED, STATE_DRAFT, STATE_REVISION, STATE_SENT, TEAMS,
 )
+from ..i18n import _
 from ..helpers import format_date, month_end, parse_date, parse_month, spv_required, wa_text
 from ..models import Report, User
 
@@ -109,16 +110,16 @@ def review(report_id):
     name = report.user.name
     if action == "check":
         report.state = STATE_CHECKED
-        message = (f"Laporan {name} sudah dicek.", "success")
+        message = (_("Laporan {name} sudah dicek.", name=name), "success")
     elif action == "revision":
         if not note:
-            flash("Tulis dulu apa yang perlu diperbaiki.", "warning")
+            flash(_("Tulis dulu apa yang perlu diperbaiki."), "warning")
             return redirect(url_for("spv.detail", report_id=report.id))
         report.state = STATE_REVISION
-        message = (f"Laporan {name} dikembalikan untuk diperbaiki.", "warning")
+        message = (_("Laporan {name} dikembalikan untuk diperbaiki.", name=name), "warning")
     elif action == "reopen" and report.state == STATE_CHECKED:
         report.state = STATE_SENT
-        message = ("Tanda sudah dicek dibatalkan.", "info")
+        message = (_("Tanda sudah dicek dibatalkan."), "info")
     else:
         abort(400)
 
@@ -135,7 +136,7 @@ def review(report_id):
         if nxt:
             flash(*message)
             return redirect(url_for("spv.detail", report_id=nxt.id))
-        flash(message[0] + " Semua laporan di tanggal ini sudah diperiksa.", "success")
+        flash(message[0] + " " + _("Semua laporan di tanggal ini sudah diperiksa."), "success")
         return redirect(url_for("spv.dashboard", tanggal=report.date.isoformat()))
     flash(*message)
     return redirect(url_for("spv.detail", report_id=report.id))
@@ -220,17 +221,17 @@ def rekap_export():
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "Semua Pekerjaan"
-    head = ["Tanggal", "Hari", "Nama", "Tim", "No", "Kategori", "Rutin", "Pekerjaan",
-            "Status Hari", "Status Report", "Catatan Spv"]
+    ws.title = _("Semua Pekerjaan")
+    head = [_(h) for h in ["Tanggal", "Hari", "Nama", "Tim", "No", "Kategori", "Rutin", "Pekerjaan",
+                           "Status Hari", "Status Report", "Catatan Spv"]]
     ws.append(head)
     for r in reports:
         items = r.items or [{"text": "", "cat": "", "rutin": False}]
         for i, it in enumerate(items, 1):
-            ws.append([r.date, format_date(r.date).split(",")[0], r.user.name, r.user.team,
+            ws.append([r.date, format_date(r.date).split(",")[0], r.user.name, _(r.user.team),
                        i if it.get("text") else None, it.get("cat", ""),
-                       "Rutin" if it.get("rutin") else ("Insidental" if it.get("text") else ""),
-                       it.get("text", ""), r.day_status, r.state_label, r.spv_note or ""])
+                       _("Rutin") if it.get("rutin") else (_("Insidental") if it.get("text") else ""),
+                       it.get("text", ""), _(r.day_status) if r.day_status else "", r.state_label, r.spv_note or ""])
 
     fill = PatternFill("solid", fgColor="EA580C")
     for c in ws[1]:
@@ -244,8 +245,8 @@ def rekap_export():
     ws.auto_filter.ref = ws.dimensions
     ws.freeze_panes = "A2"
 
-    ws2 = wb.create_sheet("Ringkasan")
-    ws2.append(["Nama", "Tim", "Hari kerja", "Pekerjaan", "Rutin", "Insidental", "Hari cuti/sakit/izin"])
+    ws2 = wb.create_sheet(_("Ringkasan"))
+    ws2.append([_(h) for h in ["Nama", "Tim", "Hari kerja", "Pekerjaan", "Rutin", "Insidental", "Hari cuti/sakit/izin"]])
     summary = defaultdict(lambda: [0, 0, 0, 0])
     for r in reports:
         s = summary[r.user]
@@ -255,7 +256,7 @@ def rekap_export():
         s[3] += 1 if r.day_status else 0
     for u in _team_order(list(summary)):
         s = summary[u]
-        ws2.append([u.name, u.team, s[0], s[1], s[2], s[1] - s[2], s[3]])
+        ws2.append([u.name, _(u.team), s[0], s[1], s[2], s[1] - s[2], s[3]])
     for c in ws2[1]:
         c.font = Font(bold=True, color="FFFFFF")
         c.fill = fill
@@ -265,6 +266,6 @@ def rekap_export():
     buf = BytesIO()
     wb.save(buf)
     buf.seek(0)
-    name = f"Rekap Daily Report HRGA {first:%Y-%m}" + (f" sd {end:%Y-%m}" if end.month != first.month or end.year != first.year else "")
+    name = _("Rekap Daily Report HRGA {m}", m=f"{first:%Y-%m}") + (_(" sd {m}", m=f"{end:%Y-%m}") if end.month != first.month or end.year != first.year else "")
     return send_file(buf, as_attachment=True, download_name=name + ".xlsx",
                      mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")

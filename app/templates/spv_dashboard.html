@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Report Masuk{% endblock %}
-{% block heading %}Report Masuk{% endblock %}
+{% block title %}{{ _('Report Masuk') }}{% endblock %}
+{% block heading %}{{ _('Report Masuk') }}{% endblock %}
 {% block heading_icon %}bi-inbox{% endblock %}
-{% block heading_subtitle %}Periksa laporan harian tim HRGA{% endblock %}
+{% block heading_subtitle %}{{ _('Periksa laporan harian tim HRGA') }}{% endblock %}
 
 {% macro person(u, r, cta=False) -%}
 <a class="rh-person{{ ' is-cta' if cta }}" href="{{ url_for('spv.detail', report_id=r.id) }}">
     <span class="rh-avatar">{{ u.initials }}</span>
     <span class="rh-person-main">
         <strong>{{ u.name }}</strong>
-        <small>{{ u.team }} · {% if r.day_status and not r.items %}{{ r.day_status }}{% else %}{{ r.items|length }} pekerjaan{% endif %}{% if r.submitted_at %} · {{ r.submitted_at.strftime('%H:%M') }}{% endif %}</small>
-        {% if r.edited_after_submit %}<span class="rh-flag"><i class="bi bi-pencil-fill"></i>Diubah setelah dikirim</span>{% endif %}
+        <small>{{ _(u.team) }} · {% if r.day_status and not r.items %}{{ _(r.day_status) }}{% else %}{{ _('{n} pekerjaan', n=r.items|length) }}{% endif %}{% if r.submitted_at %} · {{ r.submitted_at.strftime('%H:%M') }}{% endif %}</small>
+        {% if r.edited_after_submit %}<span class="rh-flag"><i class="bi bi-pencil-fill"></i>{{ _('Diubah setelah dikirim') }}</span>{% endif %}
     </span>
-    {% if cta %}<span class="rh-person-cta">Periksa<i class="bi bi-chevron-right"></i></span>
+    {% if cta %}<span class="rh-person-cta">{{ _('Periksa') }}<i class="bi bi-chevron-right"></i></span>
     {% else %}<i class="bi bi-chevron-right rh-person-arrow"></i>{% endif %}
 </a>
 {%- endmacro %}
@@ -23,13 +23,13 @@
 
     <!-- Tanggal -->
     <div class="card rh-datebar">
-        <a class="rh-nav" href="{{ url_for('spv.dashboard', tanggal=(day - timedelta1).isoformat(), tim=team) }}" aria-label="Hari sebelumnya"><i class="bi bi-chevron-left"></i></a>
-        <button type="button" class="rh-date-main" id="btnPickDate" aria-label="Pilih tanggal">
-            <span class="rh-date-label{{ ' is-past' if day != today }}">{{ 'Hari ini' if day == today else ('Kemarin' if (today - day).days == 1 else day|hari) }}</span>
+        <a class="rh-nav" href="{{ url_for('spv.dashboard', tanggal=(day - timedelta1).isoformat(), tim=team) }}" aria-label="{{ _('Hari sebelumnya') }}"><i class="bi bi-chevron-left"></i></a>
+        <button type="button" class="rh-date-main" id="btnPickDate" aria-label="{{ _('Pilih tanggal') }}">
+            <span class="rh-date-label{{ ' is-past' if day != today }}">{{ _('Hari ini') if day == today else (_('Kemarin') if (today - day).days == 1 else day|hari) }}</span>
             <span class="rh-date-text">{{ day|tanggal }} <i class="bi bi-calendar3"></i></span>
         </button>
         {% if day < today %}
-        <a class="rh-nav" href="{{ url_for('spv.dashboard', tanggal=(day + timedelta1).isoformat(), tim=team) }}" aria-label="Hari berikutnya"><i class="bi bi-chevron-right"></i></a>
+        <a class="rh-nav" href="{{ url_for('spv.dashboard', tanggal=(day + timedelta1).isoformat(), tim=team) }}" aria-label="{{ _('Hari berikutnya') }}"><i class="bi bi-chevron-right"></i></a>
         {% else %}
         <span class="rh-nav is-disabled" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
         {% endif %}
@@ -40,42 +40,42 @@
     </div>
 
     <!-- Tim -->
-    <div class="rh-scroll-chips" role="tablist" aria-label="Filter tim">
-        <a class="rh-chip{{ ' is-on' if not team }}" href="{{ url_for('spv.dashboard', tanggal=day.isoformat()) }}">Semua</a>
+    <div class="rh-scroll-chips" role="tablist" aria-label="{{ _('Filter tim') }}">
+        <a class="rh-chip{{ ' is-on' if not team }}" href="{{ url_for('spv.dashboard', tanggal=day.isoformat()) }}">{{ _('Semua') }}</a>
         {% for t in TEAMS if t != 'Supervisor' %}
-        <a class="rh-chip{{ ' is-on' if team == t }}" href="{{ url_for('spv.dashboard', tanggal=day.isoformat(), tim=t) }}">{{ t }}</a>
+        <a class="rh-chip{{ ' is-on' if team == t }}" href="{{ url_for('spv.dashboard', tanggal=day.isoformat(), tim=t) }}">{{ _(t) }}</a>
         {% endfor %}
     </div>
 
     <!-- Progres -->
     <div class="card rh-progress-card">
         <div class="rh-progress-head">
-            <div><strong class="tabular">{{ sent }} dari {{ total }}</strong> staf sudah kirim laporan</div>
+            <div><strong class="tabular">{{ _('{a} dari {b}', a=sent, b=total) }}</strong> {{ _('staf sudah kirim laporan') }}</div>
             {% if total %}<span class="rh-progress-pct tabular">{{ (sent / total * 100)|round|int }}%</span>{% endif %}
         </div>
         <div class="rh-progress"><i style="width: {{ (sent / total * 100) if total else 0 }}%"></i></div>
         <div class="rh-progress-stats">
-            <span><b class="tabular">{{ groups.check|length }}</b> perlu dicek</span>
-            <span><b class="tabular">{{ groups.checked|length }}</b> sudah dicek</span>
-            <span><b class="tabular">{{ groups.missing|length }}</b> belum kirim</span>
+            <span><b class="tabular">{{ groups.check|length }}</b> {{ _('perlu dicek') }}</span>
+            <span><b class="tabular">{{ groups.checked|length }}</b> {{ _('sudah dicek') }}</span>
+            <span><b class="tabular">{{ groups.missing|length }}</b> {{ _('belum kirim') }}</span>
         </div>
     </div>
 
     <!-- Perlu dicek -->
     <section class="rh-group">
-        <h3 class="rh-group-title"><i class="bi bi-hourglass-split"></i>Perlu dicek <span class="rh-count">{{ groups.check|length }}</span></h3>
+        <h3 class="rh-group-title"><i class="bi bi-hourglass-split"></i>{{ _('Perlu dicek') }} <span class="rh-count">{{ groups.check|length }}</span></h3>
         {% if groups.check %}
         <div class="rh-person-list">
             {% for u, r in groups.check %}{{ person(u, r, cta=True) }}{% endfor %}
         </div>
         {% else %}
-        <div class="rh-empty"><i class="bi bi-check2-circle"></i>{{ 'Semua laporan yang masuk sudah dicek.' if sent else 'Belum ada laporan yang masuk.' }}</div>
+        <div class="rh-empty"><i class="bi bi-check2-circle"></i>{{ _('Semua laporan yang masuk sudah dicek.') if sent else _('Belum ada laporan yang masuk.') }}</div>
         {% endif %}
     </section>
 
     {% if groups.revision %}
     <section class="rh-group">
-        <h3 class="rh-group-title"><i class="bi bi-arrow-counterclockwise"></i>Menunggu perbaikan staf <span class="rh-count">{{ groups.revision|length }}</span></h3>
+        <h3 class="rh-group-title"><i class="bi bi-arrow-counterclockwise"></i>{{ _('Menunggu perbaikan staf') }} <span class="rh-count">{{ groups.revision|length }}</span></h3>
         <div class="rh-person-list">
             {% for u, r in groups.revision %}{{ person(u, r) }}{% endfor %}
         </div>
@@ -88,10 +88,10 @@
     <aside class="rh-side rh-side-static">
     {% if groups.missing %}
     <section class="rh-group">
-        <h3 class="rh-group-title"><i class="bi bi-person-dash"></i>Belum kirim <span class="rh-count">{{ groups.missing|length }}</span></h3>
+        <h3 class="rh-group-title"><i class="bi bi-person-dash"></i>{{ _('Belum kirim') }} <span class="rh-count">{{ groups.missing|length }}</span></h3>
         <div class="rh-name-chips">
             {% for u, r in groups.missing %}
-            <span class="rh-name-chip"><span class="rh-avatar rh-avatar-sm">{{ u.initials }}</span>{{ u.name }}<small>{{ u.team }}</small></span>
+            <span class="rh-name-chip"><span class="rh-avatar rh-avatar-sm">{{ u.initials }}</span>{{ u.name }}<small>{{ _(u.team) }}</small></span>
             {% endfor %}
         </div>
     </section>
@@ -99,7 +99,7 @@
 
     {% if groups.checked %}
     <section class="rh-group">
-        <h3 class="rh-group-title"><i class="bi bi-check2-all"></i>Sudah dicek <span class="rh-count">{{ groups.checked|length }}</span></h3>
+        <h3 class="rh-group-title"><i class="bi bi-check2-all"></i>{{ _('Sudah dicek') }} <span class="rh-count">{{ groups.checked|length }}</span></h3>
         <div class="rh-person-list is-muted">
             {% for u, r in groups.checked %}{{ person(u, r) }}{% endfor %}
         </div>
@@ -108,12 +108,12 @@
 
     {% if pending %}
     <details class="rh-group rh-other-days">
-        <summary class="rh-group-title"><i class="bi bi-calendar2-week"></i>Belum dicek dari hari lain <span class="rh-count">{{ pending|length }}</span></summary>
+        <summary class="rh-group-title"><i class="bi bi-calendar2-week"></i>{{ _('Belum dicek dari hari lain') }} <span class="rh-count">{{ pending|length }}</span></summary>
         <div class="rh-person-list">
             {% for r in pending %}
             <a class="rh-person" href="{{ url_for('spv.detail', report_id=r.id) }}">
                 <span class="rh-avatar">{{ r.user.initials }}</span>
-                <span class="rh-person-main"><strong>{{ r.user.name }}</strong><small>{{ r.date|tanggal }} · {{ r.items|length }} pekerjaan</small></span>
+                <span class="rh-person-main"><strong>{{ r.user.name }}</strong><small>{{ r.date|tanggal }} · {{ _('{n} pekerjaan', n=r.items|length) }}</small></span>
                 <i class="bi bi-chevron-right rh-person-arrow"></i>
             </a>
             {% endfor %}

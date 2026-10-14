@@ -7,6 +7,7 @@ from .. import db
 from ..constants import (
     DAY_STATUSES, DEFAULT_KEYWORDS, STATE_CHECKED, STATE_DRAFT, STATE_REVISION, STATE_SENT,
 )
+from ..i18n import _, js_strings
 from ..helpers import format_date, parse_date, parse_month, wa_text
 from ..models import Report, team_categories, team_quick
 
@@ -39,10 +40,10 @@ def api_notif():
                                       Report.state.in_([STATE_CHECKED, STATE_REVISION]))
                   .order_by(Report.reviewed_at).limit(5)):
             if r.state == STATE_CHECKED:
-                events.append({"type": "checked", "title": "Laporan sudah dicek Spv",
+                events.append({"type": "checked", "title": _("Laporan sudah dicek Spv"),
                                "text": format_date(r.date), "url": url_for("report.write", tanggal=r.date.isoformat())})
             else:
-                events.append({"type": "revision", "title": "Spv minta perbaikan",
+                events.append({"type": "revision", "title": _("Spv minta perbaikan"),
                                "text": (r.spv_note or "")[:120], "url": url_for("report.write", tanggal=r.date.isoformat())})
         # Spv: laporan baru masuk dari staf.
         if current_user.is_spv:
@@ -50,8 +51,8 @@ def api_notif():
                       .filter(Report.submitted_at > since, Report.state == STATE_SENT,
                               Report.user_id != current_user.id, Report.source == "app")
                       .order_by(Report.submitted_at).limit(10)):
-                events.append({"type": "incoming", "title": f"Laporan baru dari {r.user.name}",
-                               "text": f"{r.user.team} · {len(r.items)} pekerjaan",
+                events.append({"type": "incoming", "title": _("Laporan baru dari {name}", name=r.user.name),
+                               "text": _("{team} · {n} pekerjaan", team=_(r.user.team), n=len(r.items)),
                                "url": url_for("spv.detail", report_id=r.id)})
     return jsonify({"now": now.isoformat(timespec="seconds"), "events": events})
 
@@ -80,13 +81,13 @@ def _date_or_404(text):
     if not d:
         abort(404)
     if d > date.today():
-        abort(400, "Tidak bisa mengisi report untuk tanggal yang akan datang.")
+        abort(400, _("Tidak bisa mengisi report untuk tanggal yang akan datang."))
     return d
 
 
 def _clean_items(raw):
     if not isinstance(raw, list):
-        abort(400, "Data tidak valid.")
+        abort(400, _("Data tidak valid."))
     items = []
     for it in raw[:MAX_ITEMS]:
         if not isinstance(it, dict):
@@ -124,6 +125,7 @@ def write():
         quick=team_quick(current_user.team),
         day_statuses=DAY_STATUSES,
         auto_category=current_user.team == "IT",
+        js_i18n=js_strings(),
     )
 
 
@@ -157,7 +159,7 @@ def api_save(day):
     report = _own_report(d)
 
     if report and not report.editable:
-        return jsonify({"error": "Report sudah dicek Spv dan tidak bisa diubah lagi."}), 409
+        return jsonify({"error": _("Report sudah dicek Spv dan tidak bisa diubah lagi.")}), 409
 
     if not report:
         if not items and not day_status:
@@ -190,9 +192,9 @@ def api_send(day):
     report = _own_report(d)
 
     if not report or (not report.items and not report.day_status):
-        return jsonify({"error": "Report masih kosong. Tulis minimal satu pekerjaan atau pilih status hari."}), 400
+        return jsonify({"error": _("Report masih kosong. Tulis minimal satu pekerjaan atau pilih status hari.")}), 400
     if report.state == STATE_CHECKED:
-        return jsonify({"error": "Report sudah dicek Spv."}), 409
+        return jsonify({"error": _("Report sudah dicek Spv.")}), 409
 
     report.state = STATE_SENT
     report.submitted_at = datetime.now()
@@ -243,7 +245,7 @@ def history():
 
 @bp.errorhandler(400)
 def bad_request(e):
-    return jsonify({"error": getattr(e, "description", "Permintaan tidak valid.")}), 400
+    return jsonify({"error": getattr(e, "description", None) or _("Permintaan tidak valid.")}), 400
 
 
 # Dipakai template untuk status di riwayat / dashboard.

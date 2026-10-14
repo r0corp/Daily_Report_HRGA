@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Laporan {{ report.user.name }}{% endblock %}
+{% block title %}{{ _('Laporan {name}', name=report.user.name) }}{% endblock %}
 {% block content %}
 {% set icons = {'sent': 'bi-send-check', 'revision': 'bi-arrow-counterclockwise', 'checked': 'bi-check2-all'} %}
 <div class="rh-write rh-layout">
@@ -7,13 +7,13 @@
 
     <!-- Navigasi antar laporan -->
     <div class="rh-review-nav">
-        <a class="rh-back" href="{{ url_for('spv.dashboard', tanggal=report.date.isoformat()) }}"><i class="bi bi-arrow-left"></i><span>Report Masuk</span></a>
+        <a class="rh-back" href="{{ url_for('spv.dashboard', tanggal=report.date.isoformat()) }}"><i class="bi bi-arrow-left"></i><span>{{ _('Report Masuk') }}</span></a>
         {% if total > 1 %}
         <div class="rh-pager">
-            {% if prev_id %}<a class="rh-nav rh-nav-sm" href="{{ url_for('spv.detail', report_id=prev_id) }}" aria-label="Laporan sebelumnya"><i class="bi bi-chevron-left"></i></a>
+            {% if prev_id %}<a class="rh-nav rh-nav-sm" href="{{ url_for('spv.detail', report_id=prev_id) }}" aria-label="{{ _('Laporan sebelumnya') }}"><i class="bi bi-chevron-left"></i></a>
             {% else %}<span class="rh-nav rh-nav-sm is-disabled"><i class="bi bi-chevron-left"></i></span>{% endif %}
-            <span class="tabular">{{ position }} dari {{ total }}</span>
-            {% if next_id %}<a class="rh-nav rh-nav-sm" href="{{ url_for('spv.detail', report_id=next_id) }}" aria-label="Laporan berikutnya"><i class="bi bi-chevron-right"></i></a>
+            <span class="tabular">{{ _('{a} dari {b}', a=position, b=total) }}</span>
+            {% if next_id %}<a class="rh-nav rh-nav-sm" href="{{ url_for('spv.detail', report_id=next_id) }}" aria-label="{{ _('Laporan berikutnya') }}"><i class="bi bi-chevron-right"></i></a>
             {% else %}<span class="rh-nav rh-nav-sm is-disabled"><i class="bi bi-chevron-right"></i></span>{% endif %}
         </div>
         {% endif %}
@@ -24,20 +24,20 @@
         <span class="rh-avatar rh-avatar-lg">{{ report.user.initials }}</span>
         <div class="rh-person-main">
             <strong>{{ report.user.name }}</strong>
-            <small>{{ report.user.team }}</small>
-            <small>{{ report.date|tanggal }}{% if report.submitted_at %} · dikirim {{ report.submitted_at.strftime('%H:%M') }}{% endif %}</small>
+            <small>{{ _(report.user.team) }}</small>
+            <small>{{ report.date|tanggal }}{% if report.submitted_at %} · {{ _('dikirim {t}', t=report.submitted_at.strftime('%H:%M')) }}{% endif %}</small>
         </div>
         <span class="badge rh-state rh-state-{{ report.state }}"><i class="bi {{ icons.get(report.state, 'bi-circle') }} me-1"></i>{{ report.state_label }}</span>
     </div>
 
     {% if report.edited_after_submit %}
-    <div class="rh-notice rh-notice-sent"><i class="bi bi-pencil"></i><div><strong>Diubah setelah dikirim</strong><p>Staf mengubah isi laporan ini setelah mengirimnya.</p></div></div>
+    <div class="rh-notice rh-notice-sent"><i class="bi bi-pencil"></i><div><strong>{{ _('Diubah setelah dikirim') }}</strong><p>{{ _('Staf mengubah isi laporan ini setelah mengirimnya.') }}</p></div></div>
     {% endif %}
     {% if report.day_status %}
-    <div class="rh-notice rh-notice-sent"><i class="bi bi-calendar-x"></i><div><strong>Status hari: {{ report.day_status }}</strong></div></div>
+    <div class="rh-notice rh-notice-sent"><i class="bi bi-calendar-x"></i><div><strong>{{ _('Status hari: {s}', s=_(report.day_status)) }}</strong></div></div>
     {% endif %}
     {% if report.spv_note %}
-    <div class="rh-notice {{ 'rh-notice-warn' if report.state == 'revision' else 'rh-notice-ok' }}"><i class="bi bi-chat-left-text"></i><div><strong>Catatan Spv{{ ' (' ~ report.reviewed_by.name ~ ')' if report.reviewed_by }}</strong><p>{{ report.spv_note }}</p></div></div>
+    <div class="rh-notice {{ 'rh-notice-warn' if report.state == 'revision' else 'rh-notice-ok' }}"><i class="bi bi-chat-left-text"></i><div><strong>{{ _('Catatan Spv') }}{{ ' (' ~ report.reviewed_by.name ~ ')' if report.reviewed_by }}</strong><p>{{ report.spv_note }}</p></div></div>
     {% endif %}
 
     <!-- Pekerjaan -->
@@ -46,8 +46,8 @@
             <div class="card-header-accent-left">
                 <div class="card-header-accent-icon"><i class="bi bi-list-check"></i></div>
                 <div>
-                    <div class="card-header-accent-title">{{ report.items|length }} pekerjaan</div>
-                    <div class="card-header-accent-subtitle">{% if report.source == 'arsip' %}Arsip Sticky Notes{% else %}{{ report.items|selectattr('rutin')|list|length }} rutin{% endif %}</div>
+                    <div class="card-header-accent-title">{{ _('{n} pekerjaan', n=report.items|length) }}</div>
+                    <div class="card-header-accent-subtitle">{% if report.source == 'arsip' %}{{ _('Arsip Sticky Notes') }}{% else %}{{ _('{n} rutin', n=report.items|selectattr('rutin')|list|length) }}{% endif %}</div>
                 </div>
             </div>
         </div>
@@ -59,12 +59,12 @@
                     <div class="rh-item-text">{{ it.text }}</div>
                     <div class="rh-item-meta">
                         <span class="rh-pill rh-cat-pill"><i class="bi bi-tag"></i>{{ it.cat }}</span>
-                        {% if it.rutin %}<span class="rh-pill rh-rutin-pill is-on"><i class="bi bi-arrow-repeat"></i>Rutin</span>{% endif %}
+                        {% if it.rutin %}<span class="rh-pill rh-rutin-pill is-on"><i class="bi bi-arrow-repeat"></i>{{ _('Rutin') }}</span>{% endif %}
                     </div>
                 </div>
             </li>
             {% else %}
-            <li class="rh-item rh-item-read"><span></span><span class="text-secondary">Tidak ada daftar pekerjaan.</span></li>
+            <li class="rh-item rh-item-read"><span></span><span class="text-secondary">{{ _('Tidak ada daftar pekerjaan.') }}</span></li>
             {% endfor %}
         </ol>
     </div>
@@ -73,7 +73,7 @@
     <!-- Web: panel kanan menempel; HP: aksi menempel di bawah layar -->
     <aside class="rh-side">
     <details class="card rh-side-card rh-wa-details">
-        <summary><i class="bi bi-whatsapp me-1"></i>Lihat sebagai teks WhatsApp</summary>
+        <summary><i class="bi bi-whatsapp me-1"></i>{{ _('Lihat sebagai teks WhatsApp') }}</summary>
         <pre class="rh-wa">{{ wa }}</pre>
     </details>
 
@@ -81,24 +81,24 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if report.state == 'checked' %}
         <div class="rh-sendbar-info">
-            <strong><i class="bi bi-check2-all text-success me-1"></i>Sudah dicek</strong>
+            <strong><i class="bi bi-check2-all text-success me-1"></i>{{ _('Sudah dicek') }}</strong>
             <span>{{ report.reviewed_by.name if report.reviewed_by }}{{ ', ' ~ report.reviewed_at.strftime('%d-%m %H:%M') if report.reviewed_at }}</span>
         </div>
-        <button class="btn btn-outline-secondary rh-send-btn" name="action" value="reopen"><i class="bi bi-arrow-counterclockwise"></i><span>Batalkan</span></button>
+        <button class="btn btn-outline-secondary rh-send-btn" name="action" value="reopen"><i class="bi bi-arrow-counterclockwise"></i><span>{{ _('Batalkan') }}</span></button>
         {% else %}
         <div class="rh-revision-panel" id="revisionPanel" hidden>
-            <label for="note" class="fw-semibold mb-1">Apa yang perlu diperbaiki?</label>
-            <textarea class="form-control rh-input" id="note" name="note" rows="3" placeholder="Contoh: Tolong tambahkan jam selesai pekerjaan">{{ report.spv_note or '' if report.state == 'revision' }}</textarea>
+            <label for="note" class="fw-semibold mb-1">{{ _('Apa yang perlu diperbaiki?') }}</label>
+            <textarea class="form-control rh-input" id="note" name="note" rows="3" placeholder="{{ _('Contoh: Tolong tambahkan jam selesai pekerjaan') }}">{{ report.spv_note or '' if report.state == 'revision' }}</textarea>
             <div class="d-flex gap-2 mt-2">
-                <button type="button" class="btn btn-outline-secondary flex-fill" id="btnCancelRevision">Batal</button>
-                <button class="btn btn-danger flex-fill" name="action" value="revision"><i class="bi bi-send me-1"></i>Kirim ke staf</button>
+                <button type="button" class="btn btn-outline-secondary flex-fill" id="btnCancelRevision">{{ _('Batal') }}</button>
+                <button class="btn btn-danger flex-fill" name="action" value="revision"><i class="bi bi-send me-1"></i>{{ _('Kirim ke staf') }}</button>
             </div>
         </div>
         <div class="rh-review-actions" id="reviewActions">
-            <button type="button" class="btn btn-outline-danger rh-send-btn rh-btn-revision" id="btnRevision"><i class="bi bi-arrow-counterclockwise"></i><span>Minta perbaikan</span></button>
-            <button class="btn btn-primary rh-send-btn rh-btn-check" name="action" value="check"><i class="bi bi-check2-all"></i><span>Sudah dicek{{ ' & lanjut' if remaining }}</span></button>
+            <button type="button" class="btn btn-outline-danger rh-send-btn rh-btn-revision" id="btnRevision"><i class="bi bi-arrow-counterclockwise"></i><span>{{ _('Minta perbaikan') }}</span></button>
+            <button class="btn btn-primary rh-send-btn rh-btn-check" name="action" value="check"><i class="bi bi-check2-all"></i><span>{{ _('Sudah dicek & lanjut') if remaining else _('Sudah dicek') }}</span></button>
         </div>
-        {% if remaining %}<div class="rh-remaining">Sisa {{ remaining }} laporan lagi di tanggal ini</div>{% endif %}
+        {% if remaining %}<div class="rh-remaining">{{ _('Sisa {n} laporan lagi di tanggal ini', n=remaining) }}</div>{% endif %}
         {% endif %}
     </form>
     </aside>

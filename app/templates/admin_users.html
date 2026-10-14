@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}User{% endblock %}
-{% block heading %}User{% endblock %}
+{% block title %}{{ _('User') }}{% endblock %}
+{% block heading %}{{ _('User') }}{% endblock %}
 {% block heading_icon %}bi-people{% endblock %}
-{% block heading_subtitle %}Staf HRGA yang bisa login dan mengirim report{% endblock %}
+{% block heading_subtitle %}{{ _('Staf HRGA yang bisa login dan mengirim report') }}{% endblock %}
 {% block header_actions %}
-<a href="{{ url_for('admin.user_form') }}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>Tambah user</a>
+<a href="{{ url_for('admin.user_form') }}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>{{ _('Tambah user') }}</a>
 {% endblock %}
 {% block content %}
 <div class="card overflow-hidden">
@@ -12,42 +12,42 @@
         <div class="card-header-accent-left">
             <div class="card-header-accent-icon"><i class="bi bi-list-ul"></i></div>
             <div>
-                <div class="card-header-accent-title">Daftar user</div>
-                <div class="card-header-accent-subtitle">{{ rows|selectattr('active')|list|length }} aktif dari {{ rows|length }} user</div>
+                <div class="card-header-accent-title">{{ _('Daftar user') }}</div>
+                <div class="card-header-accent-subtitle">{{ _('{a} aktif dari {b} user', a=rows|selectattr('active')|list|length, b=rows|length) }}</div>
             </div>
         </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-sm table-hover mb-0">
-                <thead><tr><th class="ps-3">Nama</th><th>Tim</th><th>Peran</th><th>Login</th><th class="text-end">Report</th><th>Login terakhir</th><th>Status</th><th class="pe-3 text-end">Aksi</th></tr></thead>
+                <thead><tr><th class="ps-3">{{ _('Nama') }}</th><th>{{ _('Tim') }}</th><th>{{ _('Peran') }}</th><th>{{ _('Login') }}</th><th class="text-end">{{ _('Report') }}</th><th>{{ _('Login terakhir') }}</th><th>{{ _('Status') }}</th><th class="pe-3 text-end">{{ _('Aksi') }}</th></tr></thead>
                 <tbody>
                 {% for u in rows %}
                 {% set locked = u.locked_until and u.locked_until > now() %}
                 <tr class="{{ 'text-secondary' if not u.active }}">
                     <td class="ps-3 fw-semibold">{{ u.name }}</td>
-                    <td>{{ u.team }}</td>
-                    <td>{{ roles[u.role] }}</td>
-                    <td class="small">{{ 'PIN' if u.uses_pin else 'Password' }}</td>
+                    <td>{{ _(u.team) }}</td>
+                    <td>{{ _(roles[u.role]) }}</td>
+                    <td class="small">{{ 'PIN' if u.uses_pin else _('Password') }}</td>
                     <td class="text-end tabular">{{ counts.get(u.id, 0) }}</td>
                     <td class="small">{{ u.last_login_at.strftime('%d-%m-%Y %H:%M') if u.last_login_at else '–' }}</td>
                     <td>
-                        {% if not u.active %}<span class="badge text-bg-secondary">Nonaktif</span>
-                        {% elif locked %}<span class="badge text-bg-danger" title="Sampai {{ u.locked_until.strftime('%H:%M') }}"><i class="bi bi-lock-fill me-1"></i>Terkunci</span>
-                        {% else %}<span class="badge text-bg-success">Aktif</span>{% endif %}
+                        {% if not u.active %}<span class="badge text-bg-secondary">{{ _('Nonaktif') }}</span>
+                        {% elif locked %}<span class="badge text-bg-danger" title="{{ _('Sampai {t}', t=u.locked_until.strftime('%H:%M')) }}"><i class="bi bi-lock-fill me-1"></i>{{ _('Terkunci') }}</span>
+                        {% else %}<span class="badge text-bg-success">{{ _('Aktif') }}</span>{% endif %}
                     </td>
                     <td class="pe-3 text-end text-nowrap">
-                        <a href="{{ url_for('admin.user_form', user_id=u.id) }}" class="btn btn-sm btn-outline-primary" title="Ubah / reset PIN"><i class="bi bi-pencil"></i></a>
+                        <a href="{{ url_for('admin.user_form', user_id=u.id) }}" class="btn btn-sm btn-outline-primary" title="{{ _('Ubah / reset PIN') }}"><i class="bi bi-pencil"></i></a>
                         {% if locked %}
                         <form method="post" action="{{ url_for('admin.unlock', user_id=u.id) }}" class="d-inline">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button class="btn btn-sm btn-outline-danger" title="Buka kunci login"><i class="bi bi-unlock"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" title="{{ _('Buka kunci login') }}"><i class="bi bi-unlock"></i></button>
                         </form>
                         {% endif %}
                         {% if u.id != current_user.id %}
                         <form method="post" action="{{ url_for('admin.toggle_active', user_id=u.id) }}" class="d-inline">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button class="btn btn-sm btn-outline-secondary" title="{{ 'Nonaktifkan' if u.active else 'Aktifkan' }}"><i class="bi {{ 'bi-person-dash' if u.active else 'bi-person-check' }}"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" title="{{ _('Nonaktifkan') if u.active else _('Aktifkan') }}"><i class="bi {{ 'bi-person-dash' if u.active else 'bi-person-check' }}"></i></button>
                         </form>
                         {% endif %}
                     </td>

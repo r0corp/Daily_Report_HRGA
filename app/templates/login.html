@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="{{ lang }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -70,7 +70,10 @@
         .login-brand-desc { font-size: 13px; line-height: 1.6; color: rgba(255, 255, 255, 0.8); max-width: 260px; }
         .login-form-panel { flex: 1 1 58%; padding: 32px 36px; background: #ffffff; display: flex; flex-direction: column; }
         :root[data-bs-theme="dark"] .login-form-panel { background: #1b1e27; }
-        .login-form-toolbar { display: flex; justify-content: flex-end; margin-bottom: 18px; }
+        .login-form-toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 18px; }
+        .login-lang { display: inline-flex; padding: 3px; border-radius: 10px; border: 1px solid var(--bs-border-color); }
+        .login-lang a { padding: 4px 10px; border-radius: 7px; font-size: 12.5px; font-weight: 700; color: var(--bs-secondary-color); text-decoration: none; }
+        .login-lang a.is-on { color: #fff; background: #ea580c; }
         .login-icon-btn { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
             border: 1px solid var(--bs-border-color); background: transparent; color: var(--bs-body-color); font-size: 15px; }
         .login-icon-btn:hover { background: var(--bs-tertiary-bg); }
@@ -116,7 +119,7 @@
     {% for category, message in messages %}
     <div class="alert alert-{{ category }} alert-dismissible fade show shadow" role="alert">
         {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ _('Tutup') }}"></button>
     </div>
     {% endfor %}
 </div>
@@ -134,36 +137,41 @@
                 <div class="login-brand-inner">
                     <div class="login-brand-logo"><i class="bi bi-journal-check"></i></div>
                     <div>
-                        <div class="login-brand-title">Selamat Datang</div>
+                        <div class="login-brand-title">{{ _('Selamat Datang') }}</div>
                         <div class="login-brand-subtitle">Daily Report HRGA</div>
-                        <p class="login-brand-desc mb-0">Catat pekerjaan harian dan kirim langsung ke Supervisor HRGA, tanpa perlu copy-paste ke WhatsApp.</p>
+                        <p class="login-brand-desc mb-0">{{ _('Catat pekerjaan harian dan kirim langsung ke Supervisor HRGA, tanpa perlu copy-paste ke WhatsApp.') }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="login-form-panel">
                 <div class="login-form-toolbar">
-                    <button type="button" id="loginThemeToggle" class="login-icon-btn" aria-label="Ganti tema">
+                    <div class="login-lang" role="group" aria-label="{{ _('Ganti bahasa') }}">
+                        {% for code in LANGS %}
+                        <a href="{{ url_for('auth.set_lang', code=code, next=request.full_path) }}" class="{{ 'is-on' if code == lang }}" title="{{ LANGS[code] }}">{{ code|upper }}</a>
+                        {% endfor %}
+                    </div>
+                    <button type="button" id="loginThemeToggle" class="login-icon-btn" aria-label="{{ _('Ganti tema') }}">
                         <i class="bi bi-sun-fill" data-login-theme-icon="light"></i>
                         <i class="bi bi-moon-stars-fill d-none" data-login-theme-icon="dark"></i>
                     </button>
                 </div>
 
                 <div class="login-form-body">
-                    <div class="login-form-title">Masuk</div>
-                    <p class="login-form-subtitle">Pilih nama Anda lalu masukkan PIN.</p>
+                    <div class="login-form-title">{{ _('Masuk') }}</div>
+                    <p class="login-form-subtitle">{{ _('Pilih nama Anda lalu masukkan PIN.') }}</p>
 
                     <form method="post">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                         <div class="mb-3">
-                            <label for="user_id" class="form-label">Nama</label>
+                            <label for="user_id" class="form-label">{{ _('Nama') }}</label>
                             <div class="input-group login-input-group">
                                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                                 <select class="form-select" id="user_id" name="user_id" required>
-                                    <option value="">Pilih nama…</option>
+                                    <option value="">{{ _('Pilih nama…') }}</option>
                                     {% for team, users in groups %}
-                                    <optgroup label="{{ team }}">
+                                    <optgroup label="{{ _(team) }}">
                                         {% for u in users %}
                                         <option value="{{ u.id }}" data-pin="{{ 1 if u.uses_pin else 0 }}" {{ 'selected' if selected == u.id }}>{{ u.name }}</option>
                                         {% endfor %}
@@ -180,18 +188,18 @@
                                 <input type="password" class="form-control pin" id="secret" name="secret"
                                        inputmode="numeric" autocomplete="current-password" required>
                                 <button type="button" class="btn btn-outline-secondary login-password-toggle"
-                                        id="loginTogglePassword" aria-label="Tampilkan">
+                                        id="loginTogglePassword" aria-label="{{ _('Tampilkan') }}">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 login-submit-btn">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Masuk
+                            <i class="bi bi-box-arrow-in-right me-1"></i>{{ _('Masuk') }}
                         </button>
                     </form>
 
-                    <p class="login-hint">Lupa PIN atau nama tidak ada? Hubungi IT.</p>
+                    <p class="login-hint">{{ _('Lupa PIN atau nama tidak ada? Hubungi IT.') }}</p>
                 </div>
             </div>
 
@@ -270,7 +278,7 @@
 
     function sync() {
         var opt = sel.options[sel.selectedIndex], pin = !opt || opt.dataset.pin !== "0";
-        label.textContent = pin ? "PIN" : "Password";
+        label.textContent = pin ? "PIN" : {{ _("Password")|tojson }};
         input.inputMode = pin ? "numeric" : "text";
         input.classList.toggle("pin", pin);
         input.maxLength = pin ? 6 : 200;

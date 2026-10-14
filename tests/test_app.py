@@ -185,3 +185,40 @@ def test_notifications_for_spv_and_staff(app):
     spv.post(f"/spv/report/{report_id}/review", data={"action": "revision", "note": "Tambah detail"})
     ev = staff.get(f"/api/notif?since={staff_since}").json["events"]
     assert ev[0]["type"] == "revision" and "Tambah detail" in ev[0]["text"]
+
+
+def test_language_switch(app):
+    c = app.test_client()
+    # Bawaan Bahasa Indonesia.
+    assert "Selamat Datang" in c.get("/login").get_data(as_text=True)
+
+    r = c.get("/bahasa/en?next=/login")
+    assert r.status_code == 302 and r.location.endswith("/login")
+    assert "lang=en" in r.headers["Set-Cookie"]
+    page = c.get("/login").get_data(as_text=True)
+    assert "Welcome" in page and 'lang="en"' in page
+
+    # Pesan dari server ikut diterjemahkan.
+    r = c.post("/login", data={"user_id": uid(app, "Budi"), "secret": "0000"})
+    assert "Wrong name or PIN/password." in r.get_data(as_text=True)
+
+    login(app, c, "Budi", "1234")
+    page = c.get("/tulis").get_data(as_text=True)
+    assert "My Daily Report" in page and '"lang": "en"' in page
+    assert c.post(f"/api/report/{date.today().isoformat()}/send").json["error"].startswith("The report is empty")
+
+    # Kode bahasa tidak dikenal diabaikan, redirect ke luar ditolak.
+    r = c.get("/bahasa/xx?next=https://evil.example")
+    assert "lang=xx" not in r.headers.get("Set-Cookie", "")
+    assert not r.location.startswith("https://evil")
+
+    c.get("/bahasa/id")
+    assert "Laporan Harian Saya" in c.get("/tulis").get_data(as_text=True)
+
+
+def test_english_dates(app):
+    from app.helpers import format_date
+    with app.test_request_context(headers={"Cookie": "lang=en"}):
+        assert format_date(date(2026, 10, 12)) == "Monday, 12 October 2026"
+    with app.test_request_context():
+        assert format_date(date(2026, 10, 12)) == "Senin, 12 Oktober 2026"
