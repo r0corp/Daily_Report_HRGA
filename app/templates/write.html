@@ -54,7 +54,14 @@
             <div class="card-header-accent-actions">
                 {% if can_translate %}
                 <button class="btn btn-link btn-sm rh-undo-btn" id="btnUndoTr" hidden><i class="bi bi-arrow-counterclockwise me-1"></i>{{ _('Urungkan') }}</button>
+                {% if translate_api %}
                 <button class="btn btn-outline-primary btn-sm" id="btnTranslateAll" title="{{ _('Terjemahkan semua pekerjaan ke Bahasa Inggris') }}"><i class="bi bi-translate"></i><span class="d-none d-sm-inline ms-1">{{ _('Terjemahkan semua') }}</span></button>
+                {% else %}
+                <div class="btn-group btn-group-sm" role="group" aria-label="{{ _('Terjemahkan di DeepL') }}">
+                    <button class="btn btn-outline-primary" id="btnDeepL" title="{{ _('Buka DeepL dengan semua pekerjaan ini, lalu salin hasilnya') }}"><i class="bi bi-translate"></i><span class="d-none d-sm-inline ms-1">{{ _('DeepL') }}</span></button>
+                    <button class="btn btn-outline-primary" id="btnPasteTr" data-bs-toggle="modal" data-bs-target="#pasteModal" data-mode="replace" title="{{ _('Tempel hasil terjemahan dari DeepL') }}"><i class="bi bi-clipboard-check"></i><span class="d-none d-sm-inline ms-1">{{ _('Tempel hasil') }}</span></button>
+                </div>
+                {% endif %}
                 {% endif %}
                 <button class="btn btn-outline-secondary btn-sm" id="btnPaste" data-bs-toggle="modal" data-bs-target="#pasteModal" title="{{ _('Tempel dari WhatsApp') }}"><i class="bi bi-clipboard-plus"></i><span class="d-none d-sm-inline ms-1">{{ _('Tempel') }}</span></button>
             </div>
@@ -98,7 +105,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Tutup') }}"></button>
             </div>
             <div class="modal-body">
-                <p class="text-secondary mb-2">{{ _('Salin report yang biasa Anda kirim ke WhatsApp, lalu tempel di kotak ini. Setiap nomor otomatis jadi satu pekerjaan.') }}</p>
+                <p class="text-secondary mb-2" id="pasteHelp">{{ _('Salin report yang biasa Anda kirim ke WhatsApp, lalu tempel di kotak ini. Setiap nomor otomatis jadi satu pekerjaan.') }}</p>
                 <textarea class="form-control mb-3 rh-paste" id="pasteText" rows="8" placeholder="Daily Report ...&#10;1. ...&#10;2. ..."></textarea>
                 <div class="fw-semibold mb-1" id="pasteCount">{{ _('Pratinjau') }}</div>
                 <ol class="rh-day-items" id="pastePreview"></ol>
@@ -119,6 +126,7 @@
     'quick': quick,
     'auto': auto_category,
     'translate': can_translate,
+    'translateApi': translate_api,
     'keywords': keywords,
     'csrf': csrf_token(),
     'lang': lang,

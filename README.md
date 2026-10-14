@@ -101,14 +101,12 @@ dan format teks WhatsApp ("Daily Report Senin/...").
 
 ## Terjemah report IT (DeepL)
 
-Khusus tim IT, halaman Tulis Report punya label **EN** per pekerjaan dan tombol
-**Terjemahkan semua** (Indonesia -> English, lewat DeepL API dari server) plus **Urungkan**.
-Kategori otomatis dihitung ulang dari teks Inggris.
+Khusus tim IT. Dua cara, otomatis dipilih:
 
-Aktifkan dengan menambah baris ini ke `.env` server lalu restart service:
-```
-DEEPL_API_KEY=<key dari deepl.com/pro-api>
-```
-Key paket Free (berakhiran `:fx`, gratis 500.000 karakter/bulan) otomatis memakai
-`api-free.deepl.com`. Tanpa key, tombol tetap tampil dan memberi pesan "penerjemah belum diatur".
-Isi pekerjaan dikirim ke DeepL saat tombol ditekan.
+1. **Gratis, tanpa akun (bawaan):** tombol **DeepL** membuka deepl.com dengan semua pekerjaan
+   sudah terisi (link resmi `deepl.com/translator#id/en/<teks>`, Indonesia -> English).
+   Salin hasilnya di DeepL, kembali ke aplikasi, tekan **Tempel hasil**: daftar diganti versi
+   Inggris (tanda Rutin tetap, kategori dihitung ulang, bisa **Urungkan**).
+2. **1 klik lewat API (opsional):** kalau `.env` server berisi `DEEPL_API_KEY=<key>` (paket
+   Free berakhiran `:fx`), tombol berganti jadi label **EN** per pekerjaan + **Terjemahkan semua**
+   yang langsung menerjemahkan dari server.

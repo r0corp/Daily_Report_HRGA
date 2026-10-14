@@ -134,7 +134,7 @@ function renderItems() {
           </label>
           <button type="button" class="rh-pill rh-rutin-pill${it.rutin ? " is-on" : ""}" data-act="rutin" ${ro ? "disabled" : ""}
             aria-pressed="${it.rutin}" title="${T("Tandai sebagai pekerjaan rutin")}"><i class="bi bi-arrow-repeat"></i>${T("Rutin")}</button>
-          ${P.translate && !ro ? `<button type="button" class="rh-pill rh-tr-pill" data-act="tr" title="${T("Terjemahkan ke Bahasa Inggris")}"><i class="bi bi-translate"></i>EN</button>` : ""}
+          ${P.translateApi && !ro ? `<button type="button" class="rh-pill rh-tr-pill" data-act="tr" title="${T("Terjemahkan ke Bahasa Inggris")}"><i class="bi bi-translate"></i>EN</button>` : ""}
         </div>
       </div>
       ${ro ? "" : `<button type="button" class="rh-del" data-act="del" title="${T("Hapus pekerjaan ini")}" aria-label="${T("Hapus pekerjaan {n}", { n: k + 1 })}"><i class="bi bi-x-lg"></i></button>`}
@@ -142,7 +142,8 @@ function renderItems() {
     resizeAll();
     $("btnAdd").disabled = ro;
     $("btnPaste").disabled = ro;
-    if (P.translate) $("btnTranslateAll").disabled = ro;
+    if (P.translateApi) $("btnTranslateAll").disabled = ro;
+    if (P.translate && !P.translateApi) ["btnDeepL", "btnPasteTr"].forEach(id => $(id).disabled = ro);
     document.querySelectorAll(".rh-chip").forEach(c => c.disabled = ro);
     $("quickWrap").hidden = ro || !P.quick.length;
     updateCounts();
@@ -358,12 +359,25 @@ async function translateItems(indices, btn) {
         busy.forEach((b, i) => { b.disabled = false; b.innerHTML = html[i]; });
     }
 }
+// Tanpa API: buka situs DeepL dengan teks terisi (format link resmi
+// deepl.com/translator#id/en/<teks>), lalu hasilnya ditempel kembali.
+function openDeepL() {
+    const text = cur.items.filter(i => i.text.trim()).map((i, k) => `${k + 1}. ${i.text.trim()}`).join("\n");
+    if (!text) { window.rhNotify && window.rhNotify.toast({ type: "revision", title: T("Belum ada pekerjaan untuk diterjemahkan") }); return; }
+    // "/" di teks harus jadi "\/" supaya tidak dianggap pemisah bahasa.
+    const url = "https://www.deepl.com/translator#id/en/" + encodeURIComponent(text).replace(/%2F/g, "%5C%2F");
+    window.open(url, "_blank", "noopener");
+    if (window.rhNotify) window.rhNotify.toast({ type: "sent", title: T("DeepL dibuka di tab baru"),
+        text: T("Salin hasil terjemahannya, lalu kembali ke sini dan tekan Tempel hasil.") });
+}
+if (P.translate && !P.translateApi) $("btnDeepL").onclick = openDeepL;
 if (P.translate) {
-    $("btnTranslateAll").onclick = () =>
+    if (P.translateApi) $("btnTranslateAll").onclick = () =>
         translateItems(cur.items.map((_, k) => k), null);
     $("btnUndoTr").onclick = () => {
         if (!undoTr) return;
-        for (const u of undoTr) if (cur.items[u.k]) { cur.items[u.k].text = u.text; cur.items[u.k].cat = u.cat; }
+        if (undoTr.all) cur.items = undoTr.all;
+        else for (const u of undoTr) if (cur.items[u.k]) { cur.items[u.k].text = u.text; cur.items[u.k].cat = u.cat; }
         undoTr = null;
         $("btnUndoTr").hidden = true;
         renderItems();
@@ -446,9 +460,38 @@ function pastePreview() {
     $("pasteApply").disabled = !list.length;
 }
 $("pasteText").addEventListener("input", pastePreview);
+let pasteMode = "append";
+document.getElementById("pasteModal").addEventListener("show.bs.modal", e => {
+    pasteMode = (e.relatedTarget && e.relatedTarget.dataset.mode) || "append";
+    const replace = pasteMode === "replace";
+    $("pasteTitle").innerHTML = `<i class="bi ${replace ? "bi-translate" : "bi-whatsapp"} me-2"></i>` +
+        esc(replace ? T("Tempel hasil terjemahan") : T("Tempel dari WhatsApp"));
+    $("pasteHelp").textContent = replace
+        ? T("Tempel hasil terjemahan dari DeepL. Daftar pekerjaan akan diganti dengan versi ini; tanda Rutin tetap, dan bisa diurungkan.")
+        : T("Salin report yang biasa Anda kirim ke WhatsApp, lalu tempel di kotak ini. Setiap nomor otomatis jadi satu pekerjaan.");
+    $("pasteApply").innerHTML = replace ? `<i class="bi bi-arrow-repeat me-1"></i>${T("Ganti daftar")}` : `<i class="bi bi-plus-lg me-1"></i>${T("Tambahkan")}`;
+});
+function replaceWithTranslation(list) {
+    const old = cur.items.filter(i => i.text.trim());
+    undoTr = { all: cur.items.map(i => ({ ...i })) };
+    const same = old.length === list.length;
+    cur.items = list.map((t, k) => {
+        const prev = same ? old[k] : null;
+        const it = { text: t, rutin: prev ? !!prev.rutin : (P.auto && RUTIN.test(t)), manualRutin: prev ? prev.manualRutin : false,
+                     manual: prev ? !!prev.manual : false, cat: prev && prev.manual ? prev.cat : classify(t) };
+        if (!it.cat && prev) it.cat = prev.cat;
+        return it;
+    });
+    renderItems();
+    markDirty();
+    $("btnUndoTr").hidden = false;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(() => { $("btnUndoTr").hidden = true; undoTr = null; }, 30000);
+}
 $("pasteApply").addEventListener("click", () => {
     const list = parseReport($("pasteText").value);
-    appendItems(list.map(t => ({ text: t, cat: classify(t), rutin: P.auto && RUTIN.test(t), manual: false })));
+    if (pasteMode === "replace") replaceWithTranslation(list);
+    else appendItems(list.map(t => ({ text: t, cat: classify(t), rutin: P.auto && RUTIN.test(t), manual: false })));
     $("pasteText").value = "";
     pastePreview();
     bootstrap.Modal.getOrCreateInstance($("pasteModal")).hide();

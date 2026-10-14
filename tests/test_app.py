@@ -233,8 +233,14 @@ def test_translate_only_for_it_and_reports_errors(app, monkeypatch):
 
     admin = app.test_client()
     login(app, admin, "Admin IT", "admin-password")
-    assert "btnTranslateAll" in admin.get("/tulis").get_data(as_text=True)
-    assert "btnTranslateAll" not in budi.get("/tulis").get_data(as_text=True)
+    # Tanpa API key: tombol DeepL web (gratis), bukan tombol API.
+    page = admin.get("/tulis").get_data(as_text=True)
+    assert "btnDeepL" in page and "btnPasteTr" in page and "btnTranslateAll" not in page
+    assert "btnDeepL" not in budi.get("/tulis").get_data(as_text=True)
+    app.config["DEEPL_API_KEY"] = "abc:fx"
+    page = admin.get("/tulis").get_data(as_text=True)
+    assert "btnTranslateAll" in page and "btnDeepL" not in page
+    app.config["DEEPL_API_KEY"] = ""
 
     # Tanpa API key -> pesan "belum diatur".
     r = admin.post("/api/translate", json={"texts": ["Cek printer"]})

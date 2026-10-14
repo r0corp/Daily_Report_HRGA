@@ -126,8 +126,14 @@ def write():
         day_statuses=DAY_STATUSES,
         auto_category=current_user.team == "IT",
         can_translate=can_translate(current_user),
+        translate_api=can_translate(current_user) and translate_configured(),
         js_i18n=js_strings(),
     )
+
+
+def translate_configured():
+    from ..translate import is_configured
+    return is_configured()
 
 
 def can_translate(user):
